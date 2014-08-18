@@ -83,8 +83,8 @@ class contrail::install (
       command 	  => 'dpkg-scanpackages . /dev/null | gzip -9c > Packages.gz',
       refreshonly => true,
       cwd         => '/opt/contrail/contrail_install_repo',
-      subscribe   => Package[$contrail_install_package_name],
-      require 	  => package['dpkg-dev']
+      subscribe   => Exec['extract_contrail_pkgs_to_repo'],
+      require 	  => Package['dpkg-dev']
     }
 
     ## Remove existing apt source files
@@ -95,12 +95,14 @@ class contrail::install (
     }
 
     ## Setup local repository in apt-source.
-    ::apt::source { contrail:
+    ::apt::source { local_contrail:
       location 	  => 'file:/opt/contrail/contrail_install_repo',
       repos 	  => './',
       include_src => false,
       release 	  => ' ',
     }	
+
+  }
     
     ## Install base contrail dependancy packages
     package {$contrail_dep_packages:
@@ -113,10 +115,6 @@ class contrail::install (
       command => "echo 'sun-java6-plugin shared/accepted-sun-dlj-v1-1 boolean true' | /usr/bin/debconf-set-selections; echo 'sun-java6-bin shared/accepted-sun-dlj-v1-1 boolean true' | /usr/bin/debconf-set-selections; echo 'sun-java6-jre shared/accepted-sun-dlj-v1-1 boolean true' | /usr/bin/debconf-set-selections",
       unless   => 'debconf-get-selections  | grep -P "sun-java6-plugin[\s\t]*shared/accepted-sun-dlj-v1-1[\s\t]*boolean[\s\t]*true"',	
     }
-
-    
-  }
-  
 
 #  exec { "exec-contrail-setup-$contrail_repo_type-sh" :
 #    command => $setup_script,
