@@ -1,161 +1,98 @@
+##
+## Class: contrail::system_config
+##   To do base system configuration to host contrail control nodes
+##
 
-# macro to perform common functions
-# Following variables need to be set for this resource.
-#     $self_ip
-#     $system_name
-class contrail::system_config (
-  $self_ip = $ipaddress,
-) {
+class contrail::system_config {
 
+  #
   # Ensure /etc/hosts has an entry for self to map dns name to ip address
-  host { "$hostname" :
-    ensure => present,
-    ip => "$self_ip"
-  }
+  #
 
-  # Disable SELINUX on boot, if not already disabled.
-  if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
-    exec { "selinux-dis-1" :
-      command   => "sed -i \'s/SELINUX=.*/SELINUX=disabled/g\' config",
-      cwd       => '/etc/selinux',
-      onlyif    => '[ -d /etc/selinux ]',
-      unless    => "grep -qFx 'SELINUX=disabled' '/etc/selinux/config'",
-      provider  => shell,
-      logoutput => "true"
-    }
-
-    # disable selinux runtime
-    exec { "selinux-dis-2" :
-      command   => "setenforce 0 || true",
-      unless    => "getenforce | grep -qi disabled",
-      provider  => shell,
-      logoutput => "true"
-    }
-
-    # Disable iptables
-    service { "iptables" :
-      enable => false,
-      ensure => stopped
+  if !defined (Host[$::hostname]) {
+    host { $::hostname :
+      ensure => present,
+      ip     => $::ipaddress
     }
   }
 
-  if ($operatingsystem == "Ubuntu") {
-    # disable firewall
-    exec { "disable-ufw" :
-      command   => "ufw disable",
-      unless    => "ufw status | grep -qi inactive",
-      provider  => shell,
-      logoutput => "true"
-    }
-    # Create symbolic link to chkconfig. This does not exist on Ubuntu.
-    file { '/sbin/chkconfig':
-      ensure => link,
-      target => '/bin/true'
-    }
-  }
+  ##
+  ## Disable SELINUX on boot, if not already disabled for Redhat/Centos.
+  ## Remove any core file limitation
+  ## Disable firewall
+  ##
 
-  # Flush ip tables.
-  exec { 'iptables --flush': provider => shell, logoutput => true }
-
-# Remove any core limit configured
-  if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
-    exec { 'daemon-core-file-unlimited':
-      command   => "sed -i \'/DAEMON_COREFILE_LIMIT=.*/d\' /etc/sysconfig/init; echo DAEMON_COREFILE_LIMIT=\"\'unlimited\'\" >> /etc/sysconfig/init",
-      unless    => "grep -qx \"DAEMON_COREFILE_LIMIT='unlimited'\" /etc/sysconfig/init",
+  if ($::operatingsystem == 'Centos' or $::operatingsystem == 'Fedora') {
+    ##
+    ## disable selinux runtime
+    ##
+    exec { 'selinux_disable_runtime' :
+      command  => 'setenforce 0 || true',
+      unless   => 'getenforce | grep -qi disabled',
       provider => shell,
-      logoutput => "true"
     }
-  }
-  if ($operatingsystem == "Ubuntu") {
-    exec { "core-file-unlimited" :
-      command   => "ulimit -c unlimited",
-      unless    => "ulimit -c | grep -qi unlimited",
-      provider  => shell,
-      logoutput => "true"
+
+    ##
+    ## Make it persistant
+    ##
+    file_line {'contrail_selinux_disable_persistant':
+      ensure => present,
+      line   => 'SELINUX=disabled',
+      match  => '^[\s\t]*SELINUX=',
+      path   => '/etc/sysconfig/init',
     }
-  }
 
-  # Core pattern
-  exec { 'core_pattern_1':
-    command   => 'echo \'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t\' >> /etc/sysctl.conf',
-    unless    => "grep -q 'kernel.core_pattern = /var/crashes/core.%e.%p.%h.%t' /etc/sysctl.conf",
-    provider => shell,
-    logoutput => "true"
-  }
+    service { 'iptables' :
+      ensure => stopped,
+      enable => false
+    }
 
-  # Enable ip forwarding in sysctl.conf for vgw
-  exec { 'enable-ipf-for-vgw':
-    command   => "sed -i \"s/net.ipv4.ip_forward.*/net.ipv4.ip_forward = 1/g\" /etc/sysctl.conf",
-    unless    => ["[ ! -f /etc/sysctl.conf ]",
-	  "grep -qx \"net.ipv4.ip_forward = 1\" /etc/sysctl.conf"],
-    provider => shell,
-    logoutput => "true"
-  }
-
-  # 
-  exec { 'sysctl -e -p' : provider => shell, logoutput => on_failure }
-  file { "/var/crashes":
-    ensure => "directory",
-  }
-
-  # Make sure our scripts directory is present
-  file { "/etc/contrail":
-    ensure => "directory",
-  }
-  file { "/etc/contrail/contrail_setup_utils":
-    ensure => "directory",
-    require => File["/etc/contrail"]
-  }
-
-  # Enable kernel core.
-  file { "/etc/contrail/contrail_setup_utils/enable_kernel_core.py":
-    ensure  => present,
-    mode => 0755,
-    owner => root,
-    group => root,
-    source => "puppet:///modules/$module_name/enable_kernel_core.py"
-  }
-
-  # enable kernel core , below python code has bug, for now ignore by executing echo regardless and thus returning true for cmd.
-  # need to revisit afterwards.
-  exec { "enable-kernel-core" :
-    #command => "python /etc/contrail/contrail_setup_utils/enable_kernel_core.py && echo enable-kernel-core >> /etc/contrail/contrail_common_exec.out",
-    command => "python /etc/contrail/contrail_setup_utils/enable_kernel_core.py; echo enable-kernel-core >> /etc/contrail/contrail_common_exec.out",
-    require => File["/etc/contrail/contrail_setup_utils/enable_kernel_core.py" ],
-    unless  => "grep -qx enable-kernel-core /etc/contrail/contrail_common_exec.out",
-    provider => shell,
-    logoutput => "true"
-  }
-
-  # Why is this here ?? - Abhay
-  if ($operatingsystem == "Ubuntu"){
-
-    exec { "exec-update-neutron-conf" :
-      command => "sed -i \"s/^rpc_backend = nova.openstack.common.rpc.impl_qpid/#rpc_backend = nova.openstack.common.rpc.impl_qpid/g\" /etc/neutron/neutron.conf && echo exec-update-neutron-conf >> /etc/contrail/contrail_common_exec.out",
-      unless  => ["[ ! -f /etc/neutron/neutron.conf ]",
-	      "grep -qx exec-update-neutron-conf /etc/contrail/contrail_common_exec.out"],
-      provider => shell,
-      logoutput => "true"
+    file_line {'daemon_core_file_unlimited':
+      ensure => present,
+      line   => 'DAEMON_COREFILE_LIMIT=unlimited',
+      match  => '^[\s\t]*DAEMON_COREFILE_LIMIT=',
+      path   => '/etc/sysconfig/init',
     }
   }
 
-  # Why is this here ?? - Abhay
-  if ($operatingsystem == "Centos" or $operatingsystem == "Fedora") {
-    exec { "exec-update-quantum-conf" :
-      command => "sed -i \"s/rpc_backend\s*=\s*quantum.openstack.common.rpc.impl_qpid/#rpc_backend = quantum.openstack.common.rpc.impl_qpid/g\" /etc/quantum/quantum.conf && echo exec-update-quantum-conf >> /etc/contrail/contrail_common_exec.out",
-      unless  => ["[ ! -f /etc/quantum/quantum.conf ]",
-	      "grep -qx exec-update-quantum-conf /etc/contrail/contrail_common_exec.out"],
-      provider => shell,
-      logoutput => "true"
+  if ($::operatingsystem == 'Ubuntu') {
+    ##
+    ## disable firewall, service scripts are not working for this
+    ##
+    exec { 'disable-ufw' :
+      command => 'ufw disable',
+      unless  => 'ufw status | grep -qi inactive',
     }
 
+    ##
+    ## This change need reboot of system.
+    ## This would also need change in /etc/pam.d if limits.so is 
+    ##   not added in session
+    ##
+
+    file_line {'daemon-core-file-unlimited':
+      ensure => present,
+      line   => '* soft core unlimited',
+      match  => '^[\s\t]*.[\s\t]*soft[\s\t]*core',
+      path   => '/etc/security/limits.conf',
+    }
 
   }
 
-#  exec { "contrail-status" :
-#    command => "(contrail-status > /tmp/contrail_status || echo re-images > /tmp/contrail_status) &&  curl -v -X PUT -d @/tmp/contrail_status http://$serverip:9001/status?server_id=$hostname && echo contrail-status >> /etc/contrail/contrail_common_exec.out",
-#    provider => shell,
-#    logoutput => "true"
-#  }
+  ##
+  ## Core pattern
+  ##
+
+  ::sysctl::value {'kernel.core_pattern':
+    value => '/var/crashes/core.%e.%p.%h.%t'
+  }
+
+  ##
+  ## Enable ip forwarding in sysctl.conf for vgw
+  ##
+
+  ::sysctl::value {'net.ipv4.ip_forward':
+    value => '1'
+  }
 
 }
