@@ -36,7 +36,7 @@ RwQOupXOWC3/YXfgEZ9JryJXSI1C8cVEUiCp4XMr9TEeCaQQnDAmg53hK3swQ23AdWeV
 -----END PGP PUBLIC KEY BLOCK-----'
 ){
 
-  ::apt::source { 'opencontail':
+  ::apt::source { 'opencontrail':
     location    => $location,
     release     => $release,
     repos       => $repos,
