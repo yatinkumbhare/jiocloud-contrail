@@ -8,6 +8,7 @@ describe 'contrail' do
     :lsbdistid       => 'ubuntu',
     :lsbdistcodename => 'trusty',
     :ipaddress       => '10.1.1.1',
+    :interfaces      => 'eth0,lo',
     }
   end
 
@@ -58,6 +59,10 @@ describe 'contrail' do
       })
 
       should_not contain_class('contrail::repo')
+      should contain_class('contrail::control').with({
+        'control_ip_list' => '10.1.1.1',
+        'config_ip'       => '10.1.1.1',
+      })
     end
   end
 
