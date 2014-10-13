@@ -61,7 +61,7 @@ class contrail::system_config {
     ##
     exec { 'disable-ufw' :
       command => 'ufw disable',
-      unless  => 'ufw status | grep -qi inactive',
+      onlyif  => 'test -f /usr/sbin/ufw && ufw status | grep -qi "Status: active"'
     }
 
     ##
