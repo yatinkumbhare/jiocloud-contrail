@@ -64,6 +64,9 @@
 # [*cassandra_ip_list*]
 #  An array of Cassandra server ip list
 #
+# [*cassandra_port*]
+#   Cassandra Port. Default: 9160
+#
 # [*api_listen*]
 #  IP Address to listen contrail api
 #
@@ -116,6 +119,9 @@
 #   Whether to enable svcmon or not. This service is only required if you are
 #   using service chaining (service vms) 
 #
+# [*interface*]
+#   Network interface to use by contrail services
+#
 # === Examples
 #
 #  class {'::contrail':
@@ -137,28 +143,29 @@ class contrail (
   $keystone_admin_token,
   $keystone_admin_password,
   $keystone_auth_password,
+  $interface                  = 'eth0',
   $keystone_region            = 'RegionOne',
   $manage_repo                = false,
-  $control_ip_list            = [$::ipaddress],
+  $control_ip_list            = [],
   $config_package_name        = 'contrail-config-openstack',
   $package_ensure             = 'present',
   $keystone_admin_port        = 35357,
   $keystone_protocol          = 'http',
   $haproxy_enabled            = true,
-  $neutron_ip                 = $::ipaddress,
+  $neutron_ip                 = undef,
   $neutron_port               = 9697,
   $neutron_protocol           = 'http',
-  $config_ip                  = $::ipaddress,
+  $config_ip                  = undef,
   $use_certs                  = false,
-  $cassandra_ip_list          = [ $::ipaddress ],
+  $cassandra_ip_list          = [],
   $api_listen                 = '0.0.0.0',
   $api_local_listen_port      = 9100,
   $api_server_port            = 8082,
   $multi_tenancy              = false,
   $memcache_servers           = '127.0.0.1:11211',
-  $zk_ip_list                 = [$::ipaddress],
-  $redis_ip                   =  $::ipaddress,
-  $rabbit_ip                  =  $::ipaddress,
+  $zk_ip_list                 = [],
+  $redis_ip                   =  undef,
+  $rabbit_ip                  =  undef,
   $discovery_listen           = '0.0.0.0',
   $discovery_local_listen_port= 9110,
   $discovery_server_port      = 5998,
@@ -211,6 +218,61 @@ class contrail (
   }
   anchor {'contrail::end':}
 
+  ##
+  # Fail if the interface provided doesn't have any IP address associated
+  ##
+
+  $contrail_ip = inline_template("<%= scope.lookupvar('ipaddress_' + @interface) %>")
+
+  if empty($contrail_ip) {
+    fail("Interface provided ($interface) doesn't have any IP address associated")
+  }
+
+  ##
+  # Set defaults
+  ##
+  if empty($control_ip_list) {
+    $control_ip_list_orig = [$contrail_ip]
+  } else {
+    $control_ip_list_orig = $control_ip_list
+  }
+
+  if empty($neutron_ip) {
+    $neutron_ip_orig = $contrail_ip
+  } else {
+    $neutron_ip_orig = $neutron_ip
+  }
+
+  if empty($config_ip) {
+    $config_ip_orig = $contrail_ip
+  } else {
+    $config_ip_orig = $config_ip
+  }
+
+  if empty($cassandra_ip_list) {
+    $cassandra_ip_list_orig = [$contrail_ip]
+  } else {
+    $cassandra_ip_list_orig = $cassandra_ip_list
+  }
+
+  if empty($zk_ip_list) {
+    $zk_ip_list_orig = [$contrail_ip]
+  } else {
+    $zk_ip_list_orig = $zk_ip_list
+  }
+
+  if empty($redis_ip) {
+    $redis_ip_orig = $contrail_ip
+  } else {
+    $redis_ip_orig = $redis_ip
+  }
+
+  if empty($rabbit_ip) {
+    $rabbit_ip_orig = $contrail_ip
+  } else {
+    $rabbit_ip_orig = $rabbit_ip
+  }
+
 
   ##
   #  Setup repo if enabled.
@@ -231,7 +293,9 @@ class contrail (
   #       and make the system ready to run contrail services
   ##
 
-  include ::contrail::system_config
+  class {'contrail::system_config':
+    contrail_ip => $contrail_ip,
+  }
 
   Anchor['contrail::start'] ->
   Class['contrail::system_config'] ->
@@ -241,7 +305,7 @@ class contrail (
   # Manage contrail ifmap
   ##
   class {'contrail::ifmap':
-    control_ip_list => $control_ip_list
+    control_ip_list => $control_ip_list_orig
   }
 
   Anchor['contrail::start'] ->
@@ -262,27 +326,26 @@ class contrail (
     keystone_admin_port        => $keystone_admin_port,
     keystone_protocol          => $keystone_protocol,
     haproxy_enabled            => $haproxy_enabled,
-    neutron_ip                 => $neutron_ip,
+    neutron_ip                 => $neutron_ip_orig,
     neutron_port               => $neutron_port,
     neutron_protocol           => $neutron_protocol,
-    config_ip                  => $config_ip,
+    config_ip                  => $config_ip_orig,
     use_certs                  => $use_certs,
-    cassandra_ip_list          => $cassandra_ip_list,
+    cassandra_ip_list          => $cassandra_ip_list_orig,
     api_listen                 => $api_listen,
     api_local_listen_port      => $api_local_listen_port,
     api_server_port            => $api_server_port,
     multi_tenancy              => $multi_tenancy,
     memcache_servers           => $memcache_servers,
-    zk_ip_list                 => $zk_ip_list,
-    redis_ip                   => $redis_ip,
-    rabbit_ip                  => $rabbit_ip,
+    zk_ip_list                 => $zk_ip_list_orig,
+    redis_ip                   => $redis_ip_orig,
+    rabbit_ip                  => $rabbit_ip_orig,
     discovery_listen           => $discovery_listen,
     discovery_local_listen_port=> $discovery_local_listen_port,
     discovery_server_port      => $discovery_server_port,
     hc_interval                => $hc_interval,
     enable_svcmon              => $enable_svcmon,
   }
-
 
   Anchor['contrail::end_base_services'] ->
   Class['contrail::config'] ->
@@ -292,12 +355,12 @@ class contrail (
   # Contrail control services
   ##
   class {'contrail::control':
-    control_ip_list => $control_ip_list,
-    config_ip       => $config_ip,
+    control_ip_list => $control_ip_list_orig,
+    config_ip       => $config_ip_orig,
+    contrail_ip     => $contrail_ip,
   }
 
   Anchor['contrail::end_base_services'] ->
   Class['contrail::control'] ->
   Anchor['contrail::end']
-
 }

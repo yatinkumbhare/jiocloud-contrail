@@ -5,6 +5,7 @@ class contrail::control (
   $package_ensure  = present,
   $control_ip_list = [$::ipaddress],
   $config_ip       = $::ipaddress,
+  $contrail_ip     = $::ipaddress,
 ) {
 
   $all_interfaces = 'eth0,eth1'
