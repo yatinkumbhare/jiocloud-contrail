@@ -8,6 +8,7 @@ describe 'contrail' do
     :lsbdistid       => 'ubuntu',
     :lsbdistcodename => 'trusty',
     :ipaddress       => '10.1.1.1',
+    :ipaddress_eth0  => '10.1.1.1',
     :interfaces      => 'eth0,lo',
     }
   end

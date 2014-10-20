@@ -122,6 +122,13 @@
 # [*interface*]
 #   Network interface to use by contrail services
 #
+# [*collector_ip*]
+#   The IP address of contrail collector.
+#   Note: Not sure if it is loadblanced IP or local IP or a list of ip addresses
+#
+# [*analytics_data_ttl*]
+#   How long analytics data to keep in hours. Default: 48 (2 days worth of data)
+#
 # === Examples
 #
 #  class {'::contrail':
@@ -171,6 +178,9 @@ class contrail (
   $discovery_server_port      = 5998,
   $hc_interval                = 5,
   $enable_svcmon              = false,
+  $cassandra_port             = 9160,
+  $analytics_data_ttl         = 48,
+  $collector_ip               = undef,
 ) {
 
   ##
@@ -191,6 +201,8 @@ class contrail (
   validate_re($api_server_port, '\d+')
   validate_re($discovery_local_listen_port, '\d+')
   validate_re($discovery_server_port, '\d+')
+  validate_re($cassandra_port, '\d+')
+  validate_re($analytics_data_ttl, '\d+')
   validate_re($hc_interval, '\d+')
   validate_string($keystone_host)
   validate_string($keystone_region)
@@ -198,6 +210,7 @@ class contrail (
   validate_string($keystone_admin_password)
   validate_string($keystone_auth_password)
   validate_string($redis_ip)
+  validate_string($collector_ip)
   validate_string($rabbit_ip)
   validate_string($config_package_name)
   validate_string($package_ensure)
@@ -225,7 +238,7 @@ class contrail (
   $contrail_ip = inline_template("<%= scope.lookupvar('ipaddress_' + @interface) %>")
 
   if empty($contrail_ip) {
-    fail("Interface provided ($interface) doesn't have any IP address associated")
+    fail("Interface provided (${interface}) doesn't have any IP address associated")
   }
 
   ##
@@ -247,6 +260,12 @@ class contrail (
     $config_ip_orig = $contrail_ip
   } else {
     $config_ip_orig = $config_ip
+  }
+
+  if empty($collector_ip) {
+    $collector_ip_orig = $contrail_ip
+  } else {
+    $collector_ip_orig = $collector_ip
   }
 
   if empty($cassandra_ip_list) {
@@ -363,4 +382,19 @@ class contrail (
   Anchor['contrail::end_base_services'] ->
   Class['contrail::control'] ->
   Anchor['contrail::end']
+
+
+  ##
+  # Contrail analytics collector
+  ##
+  class {'contrail::collector':
+    contrail_ip   => $contrail_ip,
+    collector_ip  => $collector_ip_orig,
+    config_ip     => $config_ip_orig,
+    analytics_data_ttl  => $analytics_data_ttl,
+    cassandra_ip_list   => $cassandra_ip_list_orig,
+    redis_ip            => $redis_ip,
+    cassandra_port     => $cassandra_port,
+  }
+
 }
