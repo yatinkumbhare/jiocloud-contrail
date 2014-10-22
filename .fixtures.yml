@@ -8,3 +8,6 @@ fixtures:
     sysctl:
       repo: https://github.com/duritong/puppet-sysctl
       ref: 3b027e816818f2c1086075038ac9b4af1cadbc24
+    apt:
+      repo: https://github.com/puppetlabs/puppetlabs-apt
+      ref: 1.6.0

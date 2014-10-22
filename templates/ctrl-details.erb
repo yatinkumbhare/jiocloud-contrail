@@ -1,0 +1,27 @@
+SERVICE_TOKEN=<%= @keystone_auth_password %>
+AUTH_PROTOCOL=<%= @keystone_protocol %>
+ADMIN_TOKEN=<%= @keystone_admin_token %>
+CONTROLLER=<%= @keystone_host %>
+QUANTUM=<%= @neutron_ip %>
+QUANTUM_PORT=<%= @neutron_port %>
+QUANTUM_PROTOCOL=<%= @neutron_protocol %>
+COMPUTE=<%= @compute_ip %>
+<% if @openstack_mgmt_ip -%>
+CONTROLLER_MGMT=<%= @openstack_mgmt_ip %>
+<% end -%>
+<% if @openstack_index -%>
+OPENSTACK_INDEX=<%= @openstack_index %>
+<% end -%>
+AMQP_SERVER=<%= @rabbit_ip %>
+<% if @contrail_vm_ip -%>
+VMWARE_IP=<%= @contrail_vm_ip %>
+<% end -%>
+<% if @contrail_vm_username -%>
+VMWARE_USERNAME=<%= @contrail_vm_username %>
+<% end -%>
+<% if @contrail_vm_passwd -%>
+VMWARE_PASSWD=<%= @contrail_vm_passwd %>
+<% end -%>
+<% if @contrail_vswitch -%>
+VMWARE_VMPG_VSWITCH=<%= @contrail_vswitch %>
+<% end -%>
