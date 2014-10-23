@@ -126,13 +126,39 @@
 # [*enable_svcmon*]
 #   Whether to enable svc-mon or not. svcmon is used for service chaining.
 #
+# [*router_asn*]
+#   ASN that use in the router. Default: 64512
+#
+# [*contrail_ip*]
+#   The ip address assigned to the user which is used by contrail services.
+#   This is relavant in case of multiple interfaces on the contrail nodes.
+#
+# [*nova_metadata_address*]
+#   Nova metadata address
+#
+# [*nova_metadata_port*]
+#   Nova Metadata port. Default: 8775
+#
+# [*router_name*]
+#   Edge router name. This is required to add router to contrail config in order
+#   to establish bgp neighbourship with edge router. Default: router1
+#
+# [*router_ip*]
+#   Edge router IP address
 #
 
+
+
 class contrail::config (
-  $keystone_host,
   $keystone_admin_token,
   $keystone_admin_password,
   $keystone_auth_password,
+  $router_ip                  = undef,
+  $router_name                = 'router1',
+  $keystone_host              = $::ipaddress,
+  $nova_metadata_address      = $::ipaddress,
+  $nova_metadata_port         = 8775,
+  $contrail_ip                = $::ipaddress,
   $keystone_admin_user        = 'admin',
   $keystone_admin_tenant      = 'openstack',
   $keystone_region            = 'RegionOne',
@@ -164,6 +190,7 @@ class contrail::config (
   $hc_interval                = 5,
   $compute_ip                 = 'None',
   $enable_svcmon              = false,
+  $router_asn                 = 64512,
 ){
 
   ##
@@ -227,8 +254,6 @@ class contrail::config (
     require   => Package[$package_name]
   }
 
-
-
   service {'contrail-api':
     ensure    => 'running',
     enable    => true,
@@ -279,4 +304,44 @@ class contrail::config (
     subscribe => File['/etc/contrail/contrail-discovery.conf'],
   }
 
+  ##
+  # Provision control nodes - Add bgp entries in config database for
+  # contrail control node.
+  # Each controller node will its own entry.
+  ##
+  contrail_bgp_provisioner {$::hostname:
+    ensure        => present,
+    type          => 'control',
+    host_address  => $contrail_ip,
+    admin_password=> $keystone_admin_password,
+    require       => Service['contrail-api'],
+  }
+
+
+  ##
+  # Provision edge routers. This is only need to be run on leader.
+  ##
+  if $router_ip {
+    contrail_bgp_provisioner {$router_name:
+      ensure        => present,
+      type          => 'router',
+      host_address  => $router_ip,
+      admin_password=> $keystone_admin_password,
+      require       => Service['contrail-api'],
+    }
+  }
+
+  ##
+  # Provision linklocal service for Nova metadata
+  ##
+
+  contrail_linklocal_provisioner {'metadata':
+    ensure                  => present,
+    ipfabric_service_address=> $nova_metadata_address,
+    ipfabric_service_port   => $nova_metadata_port,
+    admin_password          => $keystone_admin_password,
+    service_address         => '169.254.169.254',
+    service_port            => 80,
+    require                 => Service['contrail-api'],
+  }
 }

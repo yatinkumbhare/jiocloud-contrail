@@ -16,7 +16,7 @@ describe 'contrail' do
   context 'with defaults' do
     let :params do
       {
-        :keystone_host           => '10.1.1.2',
+        :keystone_address        => '10.1.1.2',
         :keystone_admin_token    => 'admin_token',
         :keystone_admin_password => 'admin_password',
         :keystone_auth_password  => 'auth_password'
@@ -29,7 +29,7 @@ describe 'contrail' do
       })
 
       should contain_class('contrail::config').with({
-        'keystone_host'              => '10.1.1.2',
+        'keystone_host'              => '10.1.1.1',
         'keystone_admin_token'       => 'admin_token',
         'keystone_admin_password'    => 'admin_password',
         'keystone_auth_password'     => 'auth_password',
@@ -71,7 +71,7 @@ describe 'contrail' do
     let :params do
       {
         :control_ip_list         => ['10.1.1.1','10.1.1.2','10.1.1.3'],
-        :keystone_host           => '10.1.1.2',
+        :keystone_address        => '10.1.1.2',
         :keystone_admin_token    => 'admin_token',
         :keystone_admin_password => 'admin_password',
         :keystone_auth_password  => 'auth_password',

@@ -7,7 +7,7 @@
 # [*control_ip_list*]
 #   An array of contrail control node IP list
 #
-# [*keystone_host*]
+# [*keystone_address*]
 #  Keystone server
 #
 # [*keystone_admin_token*]
@@ -117,7 +117,7 @@
 #
 # [*enable_svcmon*]
 #   Whether to enable svcmon or not. This service is only required if you are
-#   using service chaining (service vms) 
+#   using service chaining (service vms)
 #
 # [*interface*]
 #   Network interface to use by contrail services
@@ -129,10 +129,27 @@
 # [*analytics_data_ttl*]
 #   How long analytics data to keep in hours. Default: 48 (2 days worth of data)
 #
+# [*router_asn*]
+#   ASN that use in the router. Default: 64512
+#
+# [*nova_metadata_address*]
+#   Nova metadata address
+#
+# [*nova_metadata_port*]
+#   Nova Metadata port. Default: 8775
+#
+# [*router_name*]
+#   Edge router name. This is required to add router to contrail config in order
+#   to establish bgp neighbourship with edge router. Default: router1
+#
+# [*router_ip*]
+#   Edge router IP address
+#
+#
 # === Examples
 #
 #  class {'::contrail':
-#   keystone_host           => '10.1.1.1',
+#   keystone_address           => '10.1.1.1',
 #   keystone_admin_token    => 'keystone_admin_token',
 #   keystone_admin_password => 'admin_user_password',
 #   keystone_auth_password  => 'neutron_user_pasword',
@@ -146,10 +163,14 @@
 #
 
 class contrail (
-  $keystone_host,
   $keystone_admin_token,
   $keystone_admin_password,
   $keystone_auth_password,
+  $router_ip                  = undef,
+  $router_name                = 'router1',
+  $keystone_address           = undef,
+  $nova_metadata_address      = undef,
+  $nova_metadata_port         = 8775,
   $interface                  = 'eth0',
   $keystone_region            = 'RegionOne',
   $manage_repo                = false,
@@ -181,6 +202,7 @@ class contrail (
   $cassandra_port             = 9160,
   $analytics_data_ttl         = 48,
   $collector_ip               = undef,
+  $router_asn                 = 64512,
 ) {
 
   ##
@@ -204,7 +226,10 @@ class contrail (
   validate_re($cassandra_port, '\d+')
   validate_re($analytics_data_ttl, '\d+')
   validate_re($hc_interval, '\d+')
-  validate_string($keystone_host)
+  validate_re($router_asn, '\d+')
+  validate_re($nova_metadata_port, '\d+')
+  validate_string($keystone_address)
+  validate_string($nova_metadata_address)
   validate_string($keystone_region)
   validate_string($keystone_admin_token)
   validate_string($keystone_admin_password)
@@ -220,6 +245,8 @@ class contrail (
   validate_string($config_ip)
   validate_string($api_listen)
   validate_string($memcache_servers)
+  validate_string($router_name)
+  validate_string($router_ip)
 
   ##
   # Declaring anchors
@@ -244,25 +271,38 @@ class contrail (
   ##
   # Set defaults
   ##
+
+  if ! $nova_metadata_address {
+    $nova_metadata_address_orig = $contrail_ip
+  } else {
+    $nova_metadata_address_orig = $contrail_ip
+  }
+
+  if ! $keystone_address {
+    $keystone_address_orig = $contrail_ip
+  } else {
+    $keystone_address_orig = $contrail_ip
+  }
+
   if empty($control_ip_list) {
     $control_ip_list_orig = [$contrail_ip]
   } else {
     $control_ip_list_orig = $control_ip_list
   }
 
-  if empty($neutron_ip) {
+  if ! $neutron_ip {
     $neutron_ip_orig = $contrail_ip
   } else {
     $neutron_ip_orig = $neutron_ip
   }
 
-  if empty($config_ip) {
+  if ! $config_ip {
     $config_ip_orig = $contrail_ip
   } else {
     $config_ip_orig = $config_ip
   }
 
-  if empty($collector_ip) {
+  if ! $collector_ip {
     $collector_ip_orig = $contrail_ip
   } else {
     $collector_ip_orig = $collector_ip
@@ -280,13 +320,13 @@ class contrail (
     $zk_ip_list_orig = $zk_ip_list
   }
 
-  if empty($redis_ip) {
+  if ! $redis_ip {
     $redis_ip_orig = $contrail_ip
   } else {
     $redis_ip_orig = $redis_ip
   }
 
-  if empty($rabbit_ip) {
+  if ! $rabbit_ip {
     $rabbit_ip_orig = $contrail_ip
   } else {
     $rabbit_ip_orig = $rabbit_ip
@@ -335,7 +375,9 @@ class contrail (
   # Manage contrail config services
   ##
   class {'contrail::config':
-    keystone_host              => $keystone_host,
+    keystone_host              => $keystone_address_orig,
+    nova_metadata_address      => $nova_metadata_address_orig,
+    nova_metadata_port         => $nova_metadata_port,
     keystone_admin_token       => $keystone_admin_token,
     keystone_admin_password    => $keystone_admin_password,
     keystone_auth_password     => $keystone_auth_password,
@@ -364,6 +406,10 @@ class contrail (
     discovery_server_port      => $discovery_server_port,
     hc_interval                => $hc_interval,
     enable_svcmon              => $enable_svcmon,
+    router_asn                 => $router_asn,
+    router_name                => $router_name,
+    router_ip                  => $router_ip,
+    contrail_ip                => $contrail_ip,
   }
 
   Anchor['contrail::end_base_services'] ->
