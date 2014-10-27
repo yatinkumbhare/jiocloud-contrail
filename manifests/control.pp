@@ -8,7 +8,6 @@ class contrail::control (
   $contrail_ip     = $::ipaddress,
 ) {
 
-  $all_interfaces = 'eth0,eth1'
   package {'contrail-control':
     ensure => $package_ensure,
   }

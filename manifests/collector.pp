@@ -31,6 +31,17 @@ class contrail::collector (
     require => Package['contrail-analytics'],
   }
 
+  ##
+  # upstart links under init.d are not installed by the packages, so adding
+  # them.
+  ##
+
+  file {"/etc/init.d/contrail-analytics-api":
+    ensure => link,
+    source => '/lib/init/upstart-job',
+    require=> Package['contrail-analytics'],
+  }
+
   service {'contrail-analytics-api':
     ensure    => 'running',
     enable    => true,
@@ -43,6 +54,12 @@ class contrail::collector (
     require => Package['contrail-analytics'],
   }
 
+  file {"/etc/init.d/contrail-collector":
+    ensure => link,
+    source => '/lib/init/upstart-job',
+    require=> Package['contrail-analytics'],
+  }
+
   service {'contrail-collector':
     ensure    => 'running',
     enable    => true,
@@ -53,6 +70,12 @@ class contrail::collector (
     ensure  => present,
     content => template("${module_name}/contrail-query-engine.conf.erb"),
     require => Package['contrail-analytics'],
+  }
+
+  file {"/etc/init.d/contrail-query-engine":
+    ensure => link,
+    source => '/lib/init/upstart-job',
+    require=> Package['contrail-analytics'],
   }
 
   service {'contrail-query-engine':
