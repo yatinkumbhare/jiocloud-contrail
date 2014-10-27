@@ -8,6 +8,7 @@ describe 'contrail::config' do
     :lsbdistid       => 'ubuntu',
     :lsbdistcodename => 'trusty',
     :ipaddress       => '10.1.1.1',
+    :hostname        => 'node1',
     }
   end
 
@@ -16,12 +17,15 @@ describe 'contrail::config' do
       :keystone_host           => '10.1.1.2',
       :keystone_admin_token    => 'admin_token',
       :keystone_admin_password => 'admin_password',
-      :keystone_auth_password  => 'auth_password'
+      :keystone_auth_password  => 'auth_password',
+      :contrail_ip             => '10.1.1.1',
     }
   end
   context 'with defaults' do
     it do
       should contain_package('contrail-config-openstack').with({'ensure' => 'present'})
+      should contain_package('contrail-utils').with_ensure('present')
+      should contain_package('neutron-plugin-contrail').with_ensure('present')
       should contain_file('/etc/contrail/ctrl-details').with_content( <<-CTRL.gsub(/^ {8}/, '')
         SERVICE_TOKEN=auth_password
         AUTH_PROTOCOL=http
@@ -115,11 +119,49 @@ describe 'contrail::config' do
         admin_tenant_name=openstack
       CONTRAIL_PLUGIN
       )
+      should contain_file('/etc/neutron/plugins/opencontrail/ContrailPlugin.ini').with({
+        'ensure'  => 'link',
+        'source'  => '/etc/contrail/contrail_plugin.ini',
+        'require' => 'Package[neutron-plugin-contrail]',
+      })
       should contain_service('contrail-api').that_subscribes_to('File[/etc/contrail/contrail-api.conf]')
       should contain_service('contrail-api').that_subscribes_to('File[/etc/contrail/vnc_api_lib.ini]')
       should contain_service('contrail-schema').that_subscribes_to('File[/etc/contrail/contrail-schema.conf]')
       should contain_file('/etc/contrail/contrail-discovery.conf').with_content(/zk_server_ip=10.1.1.1/)
       should contain_service('contrail-discovery').that_subscribes_to('File[/etc/contrail/contrail-discovery.conf]')
+      should contain_contrail_bgp_provisioner('node1').with({
+       'ensure'        => 'present',
+        'type'          => 'control',
+        'host_address'  => '10.1.1.1',
+        'admin_password'=> 'admin_password',
+        'require'       => 'Service[contrail-api]',
+      })
+      should contain_contrail_linklocal_provisioner('metadata').with({
+        'ensure'                  => 'present',
+        'ipfabric_service_address'=> '10.1.1.1',
+        'ipfabric_service_port'   => 8775,
+        'admin_password'          => 'admin_password',
+        'service_address'         => '169.254.169.254',
+        'service_port'            => 80,
+        'require'                 => 'Service[contrail-api]',
+      })
+    end
+  end
+  context 'with external router' do
+    before do                      
+      params.merge!({              
+        :router_ip   => '1.1.1.1',
+        :router_name => 'router1',
+      })                           
+    end                            
+    it do
+      should contain_contrail_bgp_provisioner('router1').with({
+        'ensure'        => 'present',
+        'type'          => 'router',
+        'host_address'  => '1.1.1.1',
+        'admin_password'=> 'admin_password',
+        'require'       => 'Service[contrail-api]',
+      })
     end
   end
   context 'with svc-monitor' do

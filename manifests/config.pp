@@ -207,7 +207,7 @@ class contrail::config (
     $contrail_memcache_servers = $memcache_servers
   }
 
-  $package_list = [$package_name, 'contrail-utils']
+  $package_list = [$package_name, 'contrail-utils','neutron-plugin-contrail']
 
   package { $package_list:
     ensure => $package_ensure,
@@ -248,11 +248,22 @@ class contrail::config (
     require   => Package[$package_name]
   }
 
+  ##
+  # Adding contrail plugin configuration
+  ##
+
   file {'/etc/contrail/contrail_plugin.ini':
     ensure  => present,
     content => template("${module_name}/contrail_plugin.ini.erb"),
-    require   => Package[$package_name]
+    require => Package[$package_name]
   }
+
+  file {'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini':
+    ensure  => link,
+    source  => '/etc/contrail/contrail_plugin.ini',
+    require => Package['neutron-plugin-contrail'],
+  }
+
 
   service {'contrail-api':
     ensure    => 'running',
