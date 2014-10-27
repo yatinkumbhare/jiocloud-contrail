@@ -145,6 +145,8 @@
 # [*router_ip*]
 #   Edge router IP address
 #
+# [*webui_ip*]
+#   Contrail webui IP Address
 #
 # === Examples
 #
@@ -184,6 +186,7 @@ class contrail (
   $neutron_port               = 9697,
   $neutron_protocol           = 'http',
   $config_ip                  = undef,
+  $webui_ip                  = undef,
   $use_certs                  = false,
   $cassandra_ip_list          = [],
   $api_listen                 = '0.0.0.0',
@@ -243,6 +246,7 @@ class contrail (
   validate_string($neutron_ip)
   validate_string($neutron_protocol)
   validate_string($config_ip)
+  validate_string($webui_ip)
   validate_string($api_listen)
   validate_string($memcache_servers)
   validate_string($router_name)
@@ -275,13 +279,13 @@ class contrail (
   if ! $nova_metadata_address {
     $nova_metadata_address_orig = $contrail_ip
   } else {
-    $nova_metadata_address_orig = $contrail_ip
+    $nova_metadata_address_orig = $nova_metadata_address
   }
 
   if ! $keystone_address {
     $keystone_address_orig = $contrail_ip
   } else {
-    $keystone_address_orig = $contrail_ip
+    $keystone_address_orig = $keystone_address
   }
 
   if empty($control_ip_list) {
@@ -300,6 +304,12 @@ class contrail (
     $config_ip_orig = $contrail_ip
   } else {
     $config_ip_orig = $config_ip
+  }
+
+  if ! $webui_ip {
+    $webui_ip_orig = $contrail_ip
+  } else {
+    $webui_ip_orig = $webui_ip
   }
 
   if ! $collector_ip {
@@ -434,13 +444,38 @@ class contrail (
   # Contrail analytics collector
   ##
   class {'contrail::collector':
-    contrail_ip   => $contrail_ip,
-    collector_ip  => $collector_ip_orig,
-    config_ip     => $config_ip_orig,
+    contrail_ip         => $contrail_ip,
+    collector_ip        => $collector_ip_orig,
+    config_ip           => $config_ip_orig,
     analytics_data_ttl  => $analytics_data_ttl,
     cassandra_ip_list   => $cassandra_ip_list_orig,
-    redis_ip            => $redis_ip,
-    cassandra_port     => $cassandra_port,
+    redis_ip            => $redis_ip_orig,
+    cassandra_port      => $cassandra_port,
   }
 
+  Anchor['contrail::end_base_services'] ->
+  Class['contrail::collector'] ->
+  Anchor['contrail::end']
+
+  ##
+  # Contrail webui setup
+  ##
+  class {'contrail::webui':
+    package_ensure      => $package_ensure,
+    contrail_ip         => $contrail_ip,
+    webui_ip            => $webui_ip_orig,
+    config_ip           => $config_ip_orig,
+    analytics_data_ttl  => $analytics_data_ttl,
+    cassandra_ip_list   => $cassandra_ip_list_orig,
+    redis_ip            => $redis_ip_orig,
+    glance_address      => $keystone_address_orig,
+    nova_address        => $keystone_address_orig,
+    keystone_address    => $keystone_address_orig,
+    cinder_address      => $keystone_address_orig,
+    collector_ip        => $collector_ip_orig,
+  }
+
+  Anchor['contrail::end_base_services'] ->
+  Class['contrail::webui'] ->
+  Anchor['contrail::end']
 }
