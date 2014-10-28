@@ -54,20 +54,6 @@ class contrail::webui (
                 Package['contrail-web-core'] ],      
   }                                                
 
-  ##
-  # contrail-webui initscripts are looking for /usr/bin/node (for node js). So
-  # making a softlink.
-  ##
-
-  file {'/usr/bin/node':
-    ensure  => link,
-    target  => '/usr/bin/nodejs',
-    require => [ Package['contrail-web-controller'],                          
-                Package['contrail-web-core'] ],
-    before  => [ Service['contrail-webui-jobserver'],
-                 Service['contrail-webui-webserver'] ],
-  }
-                                                   
   service {'contrail-webui-webserver':               
     ensure    => running,                          
     require   => [ Package['contrail-web-controller'], 

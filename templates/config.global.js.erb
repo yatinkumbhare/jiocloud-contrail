@@ -197,7 +197,7 @@ config.maxActiveJobs = 10;
 config.redisDBIndex = 1;
 
 /* WebUI Redis Server */
-config.redis_server_port = '6383';
+config.redis_server_port = '6379';
 config.redis_server_ip = '127.0.0.1';
 config.redis_dump_file = '/var/lib/redis/dump-webui.rdb';
 
@@ -212,7 +212,7 @@ config.logo_file = '/usr/src/contrail/contrail-web-core/webroot/img/opencontrail
 config.featurePkg = {};
 /* Add new feature Package Config details below */
 config.featurePkg.webController = {};
-config.featurePkg.webController.path = '/usr/src/contrail/contrail-web-controller';
+config.featurePkg.webController.path = '/var/lib/contrail-webui/contrail-web-controller';
 config.featurePkg.webController.enable = true;
 
 <% if @contrail_storage_enabled == '1' -%>
