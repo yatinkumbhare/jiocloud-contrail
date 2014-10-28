@@ -122,7 +122,6 @@ describe 'contrail::config' do
       should contain_file('/etc/neutron/plugins/opencontrail/ContrailPlugin.ini').with({
         'ensure'  => 'link',
         'source'  => '/etc/contrail/contrail_plugin.ini',
-        'require' => 'Package[neutron-plugin-contrail]',
       })
       should contain_service('contrail-api').that_subscribes_to('File[/etc/contrail/contrail-api.conf]')
       should contain_service('contrail-api').that_subscribes_to('File[/etc/contrail/vnc_api_lib.ini]')

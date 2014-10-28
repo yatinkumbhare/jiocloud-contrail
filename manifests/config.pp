@@ -261,7 +261,8 @@ class contrail::config (
   file {'/etc/neutron/plugins/opencontrail/ContrailPlugin.ini':
     ensure  => link,
     source  => '/etc/contrail/contrail_plugin.ini',
-    require => Package['neutron-plugin-contrail'],
+    require => [ Package['neutron-plugin-contrail'],
+                File['/etc/contrail/contrail_plugin.ini'] ],
   }
 
 
