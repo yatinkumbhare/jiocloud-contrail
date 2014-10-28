@@ -26,6 +26,18 @@ class contrail::webui (
     ensure => $package_ensure,
   }
 
+  ##
+  # Contrail webui need older version of (0.8.x) nodejs.
+  # So pinning it on contrail node.
+  ##
+  apt::pin {'nodejs_for_contrail_webui':
+    priority => 1001,
+    packages => 'nodejs',
+    version  => '0.8*'
+  }
+
+  Apt::Pin<||> -> Package<||>
+
   file { '/etc/contrail/config.global.js':
     ensure  => present,
     content => template("${module_name}/config.global.js.erb"),

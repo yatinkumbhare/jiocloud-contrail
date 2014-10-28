@@ -28,6 +28,11 @@ describe 'contrail::webui' do
       should contain_file('/etc/init.d/contrail-webui-webserver').with_target('/lib/init/upstart-job')
       should contain_service('contrail-webui-jobserver').with_ensure('running')
       should contain_service('contrail-webui-webserver').with_ensure('running')
+      should contain_apt__pin('nodejs_for_contrail_webui').with({
+        'priority' => 1001,
+        'packages' => 'nodejs',
+        'version'  => '0.8*'
+      })
     end
   end
 end
