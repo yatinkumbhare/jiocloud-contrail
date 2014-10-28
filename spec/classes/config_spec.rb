@@ -129,14 +129,13 @@ describe 'contrail::config' do
       should contain_service('contrail-schema').that_subscribes_to('File[/etc/contrail/contrail-schema.conf]')
       should contain_file('/etc/contrail/contrail-discovery.conf').with_content(/zk_server_ip=10.1.1.1/)
       should contain_service('contrail-discovery').that_subscribes_to('File[/etc/contrail/contrail-discovery.conf]')
-      should contain_contrail_bgp_provisioner('node1').with({
+      should contain_contrail_control('node1').with({
        'ensure'        => 'present',
-        'type'          => 'control',
         'host_address'  => '10.1.1.1',
         'admin_password'=> 'admin_password',
         'require'       => 'Service[contrail-api]',
       })
-      should contain_contrail_linklocal_provisioner('metadata').with({
+      should contain_contrail_linklocal('metadata').with({
         'ensure'                  => 'present',
         'ipfabric_service_address'=> '10.1.1.1',
         'ipfabric_service_port'   => 8775,
@@ -155,9 +154,8 @@ describe 'contrail::config' do
       })                           
     end                            
     it do
-      should contain_contrail_bgp_provisioner('router1').with({
+      should contain_contrail_router('router1').with({
         'ensure'        => 'present',
-        'type'          => 'router',
         'host_address'  => '1.1.1.1',
         'admin_password'=> 'admin_password',
         'require'       => 'Service[contrail-api]',

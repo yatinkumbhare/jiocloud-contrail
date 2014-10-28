@@ -186,7 +186,7 @@ class contrail (
   $neutron_port               = 9697,
   $neutron_protocol           = 'http',
   $config_ip                  = undef,
-  $webui_ip                  = undef,
+  $webui_ip                   = undef,
   $use_certs                  = false,
   $cassandra_ip_list          = [],
   $api_listen                 = '0.0.0.0',

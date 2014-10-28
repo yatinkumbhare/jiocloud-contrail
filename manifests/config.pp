@@ -320,9 +320,8 @@ class contrail::config (
   # contrail control node.
   # Each controller node will its own entry.
   ##
-  contrail_bgp_provisioner {$::hostname:
+  contrail_control {$::hostname:
     ensure        => present,
-    type          => 'control',
     host_address  => $contrail_ip,
     admin_password=> $keystone_admin_password,
     require       => Service['contrail-api'],
@@ -333,9 +332,8 @@ class contrail::config (
   # Provision edge routers. This is only need to be run on leader.
   ##
   if $router_ip {
-    contrail_bgp_provisioner {$router_name:
+    contrail_router {$router_name:
       ensure        => present,
-      type          => 'router',
       host_address  => $router_ip,
       admin_password=> $keystone_admin_password,
       require       => Service['contrail-api'],
@@ -346,7 +344,7 @@ class contrail::config (
   # Provision linklocal service for Nova metadata
   ##
 
-  contrail_linklocal_provisioner {'metadata':
+  contrail_linklocal {'metadata':
     ensure                  => present,
     ipfabric_service_address=> $nova_metadata_address,
     ipfabric_service_port   => $nova_metadata_port,
