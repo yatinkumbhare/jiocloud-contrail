@@ -3,7 +3,7 @@
 #   Provide web based ui
 #
 # == Parameters
-# 
+#
 #
 #
 class contrail::webui (
@@ -47,19 +47,19 @@ class contrail::webui (
     subscribe => File['/etc/contrail/config.global.js'],
   }
 
-  file { '/etc/init.d/contrail-webui-webserver':     
-    ensure => link,                                
-    target => '/lib/init/upstart-job',               
+  file { '/etc/init.d/contrail-webui-webserver':
+    ensure => link,
+    target => '/lib/init/upstart-job',
     require=> [ Package['contrail-web-controller'],
-                Package['contrail-web-core'] ],      
-  }                                                
+                Package['contrail-web-core'] ],
+  }
 
-  service {'contrail-webui-webserver':               
-    ensure    => running,                          
-    require   => [ Package['contrail-web-controller'], 
-                Package['contrail-web-core'] ],    
+  service {'contrail-webui-webserver':
+    ensure    => running,
+    require   => [ Package['contrail-web-controller'],
+                Package['contrail-web-core'] ],
     subscribe => File['/etc/contrail/config.global.js'],
-  }                                                
+  }
 
 
 }

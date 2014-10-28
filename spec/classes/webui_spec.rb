@@ -26,7 +26,6 @@ describe 'contrail::webui' do
       should contain_file('/etc/contrail/config.global.js').with_content(/config.analytics.server_ip = '10.1.1.1'/)
       should contain_file('/etc/init.d/contrail-webui-jobserver').with_target('/lib/init/upstart-job')
       should contain_file('/etc/init.d/contrail-webui-webserver').with_target('/lib/init/upstart-job')
-      should contain_file('/usr/bin/node').with_target('/usr/bin/nodejs')
       should contain_service('contrail-webui-jobserver').with_ensure('running')
       should contain_service('contrail-webui-webserver').with_ensure('running')
     end

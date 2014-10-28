@@ -36,7 +36,7 @@ class contrail::collector (
   # them.
   ##
 
-  file {"/etc/init.d/contrail-analytics-api":
+  file {'/etc/init.d/contrail-analytics-api':
     ensure => link,
     source => '/lib/init/upstart-job',
     require=> Package['contrail-analytics'],
@@ -54,7 +54,7 @@ class contrail::collector (
     require => Package['contrail-analytics'],
   }
 
-  file {"/etc/init.d/contrail-collector":
+  file {'/etc/init.d/contrail-collector':
     ensure => link,
     source => '/lib/init/upstart-job',
     require=> Package['contrail-analytics'],
@@ -72,7 +72,7 @@ class contrail::collector (
     require => Package['contrail-analytics'],
   }
 
-  file {"/etc/init.d/contrail-query-engine":
+  file {'/etc/init.d/contrail-query-engine':
     ensure => link,
     source => '/lib/init/upstart-job',
     require=> Package['contrail-analytics'],

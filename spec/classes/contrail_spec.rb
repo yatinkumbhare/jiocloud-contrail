@@ -29,7 +29,7 @@ describe 'contrail' do
       })
 
       should contain_class('contrail::config').with({
-        'keystone_host'              => '10.1.1.1',
+        'keystone_host'              => '10.1.1.2',
         'keystone_admin_token'       => 'admin_token',
         'keystone_admin_password'    => 'admin_password',
         'keystone_auth_password'     => 'auth_password',
