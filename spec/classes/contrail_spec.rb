@@ -8,13 +8,15 @@ describe 'contrail' do
     :lsbdistid       => 'ubuntu',
     :lsbdistcodename => 'trusty',
     :ipaddress       => '10.1.1.1',
+    :ipaddress_eth0  => '10.1.1.1',
+    :interfaces      => 'eth0,lo',
     }
   end
 
   context 'with defaults' do
     let :params do
       {
-        :keystone_host           => '10.1.1.2',
+        :keystone_address        => '10.1.1.2',
         :keystone_admin_token    => 'admin_token',
         :keystone_admin_password => 'admin_password',
         :keystone_auth_password  => 'auth_password'
@@ -58,6 +60,10 @@ describe 'contrail' do
       })
 
       should_not contain_class('contrail::repo')
+      should contain_class('contrail::control').with({
+        'control_ip_list' => '10.1.1.1',
+        'config_ip'       => '10.1.1.1',
+      })
     end
   end
 
@@ -65,7 +71,7 @@ describe 'contrail' do
     let :params do
       {
         :control_ip_list         => ['10.1.1.1','10.1.1.2','10.1.1.3'],
-        :keystone_host           => '10.1.1.2',
+        :keystone_address        => '10.1.1.2',
         :keystone_admin_token    => 'admin_token',
         :keystone_admin_password => 'admin_password',
         :keystone_auth_password  => 'auth_password',

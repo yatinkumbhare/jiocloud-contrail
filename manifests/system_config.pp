@@ -3,7 +3,9 @@
 ##   To do base system configuration to host contrail control nodes
 ##
 
-class contrail::system_config {
+class contrail::system_config (
+  $contrail_ip  = $::ipaddress
+) {
 
   #
   # Ensure /etc/hosts has an entry for self to map dns name to ip address
@@ -12,7 +14,7 @@ class contrail::system_config {
   if !defined (Host[$::hostname]) {
     host { $::hostname :
       ensure => present,
-      ip     => $::ipaddress
+      ip     => $contrail_ip,
     }
   }
 
