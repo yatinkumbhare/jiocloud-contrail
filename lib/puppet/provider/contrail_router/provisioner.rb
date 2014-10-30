@@ -1,4 +1,4 @@
-require 'puppet/provider/contrailBGP'
+require_relative '../contrailBGP'
 
 Puppet::Type.type(:contrail_router).provide(
   :provisioner,
