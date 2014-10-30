@@ -1,4 +1,4 @@
-require 'puppet/provider/contrailLinklocal'
+require_relative '../contrailLinklocal'
 
 Puppet::Type.type(:contrail_linklocal).provide(
   :provisioner,

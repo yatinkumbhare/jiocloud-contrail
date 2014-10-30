@@ -1,5 +1,4 @@
-$LOAD_PATH.push(File.join(File.dirname(__FILE__), '..', '..', '..'))
-require 'puppet/provider/contrail'
+require_relative '../contrailLinklocal'
 
 Puppet::Type.type(:contrail_linklocal_provisioner).provide(
   :provisioner,
