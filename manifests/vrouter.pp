@@ -21,6 +21,7 @@ class contrail::vrouter (
   $router_address             = undef,
   $network_mtu                = 1500,
   $hypervisor_type            = 'kvm',
+  $autoreboot                = false,
 ) {
 
   include contrail::repo
@@ -88,18 +89,52 @@ class contrail::vrouter (
   }
 
   ##
-  # Ubuntu has a way to notify the requirement for system reboot.
-  # A reboot is required here after vrouter package installed/upgraded)
-  #
+  # A reboot is required here after vrouter dkms  package installed/upgraded),
+  # because of the kernal module install/upgrade.
+  # The package is not installing /var/run/reboot-required, so adding that file
+  # if autoreboot is not enabled, so that the reboot can be handled externally.
+  # Currently this is only handled in Debian systems.
+  # NOTE:
+  #   It may need more discussion to how to handle the reboot and it may need to
+  #   add more logic to put more control and to add additional operations to be
+  #   performed like coordinating the node reboot between multiple compute nodes
+  #   so that only a subset of nodes will be rebooted, and/or additional
+  #   operations to be performed like vm migrations or any other stuffs.
+  #   There are two options to reboot the node,
+  #   1. Reboot on refresh signal from Package['contrail-vrouter-dkms'].
+  #       The problem here is that in any case the puppet/reboot process get
+  #       inturrupted, the system will not be in consistant state
+  #   2. Reboot if /var/run/reboot-required file exist
+  #       The problem in this method is that it may be other package
+  #       installation can install /var/run/reboot-required which will cause
+  #       system reboot, not only contrail-vrouter-dkms. This is also an
+  #       advantage that the system will always be in good state - no pending
+  #       reboot will be there.
+  #   Currently choosing #2.
+  # TODO:
+  #   The package contrail-vrouter-dkms should run notify-reboot-required in
+  #   postinstall to notify the requirement for reboot.
+  #   Adding a workaround here for now.
   ##
   if $::osfamily == 'Debian' {
     exec {'write_rebootrequired':
-      command     => 'touch /var/run/reboot-required',
+      command     => 'export DPKG_MAINTSCRIPT_PACKAGE=contrail-vrouter-dkms; /usr/share/update-notifier/notify-reboot-required',
       refreshonly => true,
-      require   => [ Network_config[$vrouter_physical_interface],
-                    Network_config[$vrouter_interface] ],
-      subscribe     =>  Package['contrail-vrouter-dkms']
+      require     => [ Network_config[$vrouter_physical_interface],
+                        Network_config[$vrouter_interface] ],
+      subscribe   =>  Package['contrail-vrouter-dkms']
     }
+    if $autoreboot {
+      notify {'Automatic System reboot is enabled, A system reboot may be happend if required':}
+      exec {'system_reboot':
+        command   => 'reboot -f; sleep 60',
+        logoutput => true,
+        require   => [ Network_config[$vrouter_physical_interface],
+                        Network_config[$vrouter_interface] ],
+        onlyif    => 'grep System.restart.required /var/run/reboot-required',
+      }
+    }
+
   }
 
 
