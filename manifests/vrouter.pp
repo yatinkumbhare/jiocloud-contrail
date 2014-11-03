@@ -14,7 +14,7 @@ class contrail::vrouter (
                                   'contrail-nova-driver','contrail-vrouter-dkms'],
   $package_ensure             = 'installed',
   $vrouter_interface          = 'vhost0',
-  $vrouter_physical_interface = 'eth2',
+  $vrouter_physical_interface = 'eth0',
   $vrouter_num_controllers    = 2,
   $vrouter_gw                 = undef,
   $metadata_proxy_secret      = 'set',
@@ -121,7 +121,9 @@ class contrail::vrouter (
       command     => 'export DPKG_MAINTSCRIPT_PACKAGE=contrail-vrouter-dkms; /usr/share/update-notifier/notify-reboot-required',
       refreshonly => true,
       require     => [ Network_config[$vrouter_physical_interface],
-                        Network_config[$vrouter_interface] ],
+                        Network_config[$vrouter_interface],
+                        File['/usr/local/bin/vrouter-functions.sh'],
+                        File['/usr/local/bin/if-vhost0'] ],
       subscribe   =>  Package['contrail-vrouter-dkms']
     }
     if $autoreboot {
@@ -130,7 +132,9 @@ class contrail::vrouter (
         command   => 'reboot -f; sleep 60',
         logoutput => true,
         require   => [ Network_config[$vrouter_physical_interface],
-                        Network_config[$vrouter_interface] ],
+                        Network_config[$vrouter_interface],
+                        File['/usr/local/bin/vrouter-functions.sh'],
+                        File['/usr/local/bin/if-vhost0'] ],
         onlyif    => 'grep System.restart.required /var/run/reboot-required',
       }
     }
@@ -148,14 +152,12 @@ class contrail::vrouter (
     ensure => file,
     mode   => '0755',
     source => "puppet:///modules/${module_name}/vrouter-functions.sh",
-    before => Exec['network_restart'],
   }
 
   file {'/usr/local/bin/if-vhost0':
     ensure => file,
     mode   => '0755',
     source => "puppet:///modules/${module_name}/if-vhost0",
-    before => Exec['network_restart'],
   }
 
   ##
