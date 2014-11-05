@@ -59,6 +59,10 @@ class contrail::vrouter (
     ensure  => absent,
   }
 
+  ensure_resource(package, "linux-headers-${::kernelrelease}")
+
+  Package["linux-headers-${::kernelrelease}"] -> Package['contrail-vrouter-dkms']
+  
   package {$package_names:
     ensure => $package_ensure,
   }
