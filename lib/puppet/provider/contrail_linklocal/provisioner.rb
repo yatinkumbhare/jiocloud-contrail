@@ -1,4 +1,5 @@
 require_relative '../contrailLinklocal'
+require "ipaddr"
 
 Puppet::Type.type(:contrail_linklocal).provide(
   :provisioner,
@@ -16,7 +17,7 @@ Puppet::Type.type(:contrail_linklocal).provide(
   end
 
   def create_or_update
-    provision_linklocal(
+    args = [
       '--admin_user', resource[:admin_user],
       '--admin_password', resource[:admin_password],
       '--api_server_ip', resource[:api_server_address],
@@ -24,9 +25,19 @@ Puppet::Type.type(:contrail_linklocal).provide(
       '--linklocal_service_name', resource[:name],
       '--linklocal_service_ip', resource[:service_address],
       '--linklocal_service_port', resource[:service_port],
-      '--ipfabric_service_ip', resource[:ipfabric_service_address],
       '--ipfabric_service_port', resource[:ipfabric_service_port],
-      '--oper add')
+    ]
+    addr = resource[:ipfabric_service_address]
+    begin
+      if IPAddr.new(addr).ipv4? || IPAddr.new(addr).ipv6?
+        args.push('--ipfabric_service_ip')
+      end
+    rescue IPAddr::InvalidAddressError
+      args.push('--ipfabric_dns_service_name')
+    end
+    args.push(addr)
+    args.push('--oper add')
+    provision_linklocal(*args)
   end
 
   def create
@@ -44,7 +55,7 @@ Puppet::Type.type(:contrail_linklocal).provide(
   end
 
   def service_address
-   getElement(getUrl,resource[:name],'linklocal_service_ip')
+    getElement(getUrl,resource[:name],'linklocal_service_ip')
   end
 
   def service_address=(value)
@@ -60,7 +71,14 @@ Puppet::Type.type(:contrail_linklocal).provide(
   end
 
   def ipfabric_service_address
-    getElement(getUrl,resource[:name],'ip_fabric_service_ip')
+    addr = resource[:ipfabric_service_address]
+    begin
+      if IPAddr.new(addr).ipv4? || IPAddr.new(addr).ipv6?
+        return getElement(getUrl,resource[:name],'ip_fabric_service_ip')
+      end
+    rescue IPAddr::InvalidAddressError
+      return getElement(getUrl,resource[:name], 'ip_fabric_dns_service_name')
+    end
   end
 
   def ipfabric_service_address=(value)
