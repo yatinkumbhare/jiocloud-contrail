@@ -86,7 +86,8 @@ metadata it is 169.254.169.254'
     end
   end
 
-  newproperty(:ipfabric_service_address, :array_matching => :all) do
+  # not passed as an array b/c that does not seem to work
+  newproperty(:ipfabric_service_address) do
     desc 'Real IP address of linklocal service'
     def insync?(is)
       is.sort == should.sort
