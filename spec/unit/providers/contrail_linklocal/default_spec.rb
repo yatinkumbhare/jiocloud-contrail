@@ -22,7 +22,6 @@ describe Puppet::Type.type(:contrail_linklocal).provider(:provisioner) do
 
   it 'should create with an ip address for fabric' do
     p = create_provider({
-
       'ipfabric_service_address' => '127.0.0.1'
     })
     p.expects(:provision_linklocal).with do |*args|
