@@ -16,6 +16,14 @@ Puppet::Type.type(:contrail_linklocal).provide(
     !getObject(getUrl,resource[:name]).empty?
   end
 
+  def invalid_address_error
+    if IPAddr.const_defined?('InvalidAddressError')
+      IPAddr::InvalidAddressError
+    else
+      ArgumentError
+    end
+  end
+
   def create_or_update
     args = [
       '--admin_user', resource[:admin_user],
@@ -32,7 +40,7 @@ Puppet::Type.type(:contrail_linklocal).provide(
       if IPAddr.new(addr).ipv4? || IPAddr.new(addr).ipv6?
         args.push('--ipfabric_service_ip')
       end
-    rescue IPAddr::InvalidAddressError
+    rescue invalid_address_error
       args.push('--ipfabric_dns_service_name')
     end
     args.push(addr)
@@ -76,7 +84,7 @@ Puppet::Type.type(:contrail_linklocal).provide(
       if IPAddr.new(addr).ipv4? || IPAddr.new(addr).ipv6?
         return getElement(getUrl,resource[:name],'ip_fabric_service_ip')
       end
-    rescue IPAddr::InvalidAddressError
+    rescue invalid_address_error
       return getElement(getUrl,resource[:name], 'ip_fabric_dns_service_name')
     end
   end
