@@ -90,7 +90,7 @@ metadata it is 169.254.169.254'
   newproperty(:ipfabric_service_address) do
     desc 'Real IP address of linklocal service'
     def insync?(is)
-      is.sort == should.sort
+      is == should
     end
   end
 
