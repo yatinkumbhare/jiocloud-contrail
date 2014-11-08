@@ -79,7 +79,7 @@ class contrail::vrouter (
     method  => 'manual',
     options => {
                 'pre-down' => 'ifconfig $IFACE down',
-                'pre-up'   => "ifconfig \$IFACE mtu ${network_mtu} up"
+                'pre-up'   => "ifconfig \$IFACE mtu ${network_mtu} up; /usr/local/bin/if-vhost0 || true"
                 },
     onboot  => true,
   } ->
