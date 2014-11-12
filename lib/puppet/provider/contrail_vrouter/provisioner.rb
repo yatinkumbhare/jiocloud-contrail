@@ -54,7 +54,8 @@ Puppet::Type.type(:contrail_vrouter).provide(
   end
 
   def host_address=(value)
-    fail('Cannot change Existing value, please remove and recreate the vrouter object (' + resource[:name] + ')')
+    destroy
+    create
   end
 
 end
