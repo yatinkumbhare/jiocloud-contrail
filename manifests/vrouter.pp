@@ -3,6 +3,39 @@
 #
 # == To setup contrail vrouter.
 #
+# [*vgw_enabled*]
+#   Whether to enable simple gateway.
+#   Simple gateway is used to provide external network connectivity without any
+#   physical router, in test and development environments.
+#
+#   NOTE: This should not be used in production environment. As per contrail
+#   documentation simple gateway is a restricted implementation of gateway which
+#   can
+#   be used for experimental purposes.
+#
+#   One important usecase of this is to test floating IP access in dev and test
+#   environment where physical router would not be available.
+#
+# [*vgw_interface*]
+#   The tap interface name for vgw. Default: vgw1
+#
+# [*vgw_subnets*]
+#   Single subnet or  array of subnets in CIDR format (e.g. 10.0.0.0/24) for
+#   which the
+#   simple gateway to be added.
+#
+# [*vgw_dest_net*]
+#   Single or an array of destination physical networks in CIDR format. In case
+#   of
+#   floating IP, it will be '0.0.0.0/0' which is default.
+#
+# [*vgw_vrf*]
+#   Contrail fqname of the VRF on which the route to be added. e.g
+#    default-domain:services:public:public is the fqname for the VRF
+#        of public VN in services tenant
+#     Default: default-domain:services:public:public - this will work for
+#     floating IP.
+#
 #
 
 class contrail::vrouter (
@@ -21,8 +54,16 @@ class contrail::vrouter (
   $router_address             = undef,
   $network_mtu                = 1500,
   $hypervisor_type            = 'kvm',
-  $autoreboot                = false,
+  $vgw_enabled                = false,
+  $vgw_interface              = 'vgw1',
+  $vgw_subnets                = [],
+  $vgw_dest_net               = '0.0.0.0/0',
+  $vgw_vrf                    = 'default-domain:services:public:public',
 ) {
+
+  validate_bool($vgw_enabled)
+  validate_re($vgw_interface,'vgw\d+')
+  validate_string($vgw_vrf)
 
   include contrail::repo
 
@@ -62,7 +103,7 @@ class contrail::vrouter (
   ensure_resource(package, "linux-headers-${::kernelrelease}")
 
   Package["linux-headers-${::kernelrelease}"] -> Package['contrail-vrouter-dkms']
-  
+
   package {$package_names:
     ensure => $package_ensure,
   }
@@ -191,10 +232,10 @@ class contrail::vrouter (
   sysctl::value { 'net.ipv4.ip_forward': value => 1 }
 
   service { 'contrail-vrouter-agent':
-      ensure     => running,
-      enable     => true,
-      hasstatus  => true,
-      hasrestart => true,
+    ensure     => running,
+    enable     => true,
+    hasstatus  => true,
+    hasrestart => true,
   }
 
   ##
@@ -206,6 +247,21 @@ class contrail::vrouter (
     host_address       => $vrouter_ip,
     admin_password     => $keystone_admin_password,
     api_server_address => $api_ip_orig,
+    require            => Service['contrail-vrouter-agent'],
   }
 
+  ##
+  # Create vgw interface if enabled. This is only handle only one vgw interface,
+  # which is enough usually. For multiple interfaces to create, contrail_vgw
+  # should be called separately.
+  ##
+  if $vgw_enabled {
+    contrail_vgw { $vgw_interface:
+      ensure  => present,
+      subnets => $vgw_subnets,
+      dest_net=> $vgw_dest_net,
+      vrf     => $vgw_vrf,
+      require => Service['contrail-vrouter-agent'],
+    }
+  }
 }
