@@ -65,6 +65,15 @@ class contrail::vrouter (
   validate_re($vgw_interface,'vgw\d+')
   validate_string($vgw_vrf)
 
+  ##
+  # restart contrail-vrouter-agent on changing vrouter configuration
+  ##
+
+  Package['contrail-vrouter-agent'] -> Contrail_vrouter_config<||>
+
+  Contrail_vrouter_config<||> ~> Service['contrail-vrouter-agent']
+
+
   include contrail::repo
 
   if has_interface_with($vrouter_interface) {
@@ -135,7 +144,8 @@ class contrail::vrouter (
     onboot    => true,
     options => { 'pre-up'  => '/usr/local/bin/if-vhost0' }
   } ->
-  exec { "/sbin/ifup ${vrouter_interface}":
+  exec { "ifup_${vrouter_interface}":
+    command => "/sbin/ifup ${vrouter_interface}",
     unless  => "/sbin/ifconfig | grep ^${vrouter_interface}",
     require => Package[$package_names],
   }
@@ -199,14 +209,21 @@ class contrail::vrouter (
       notify => Service['contrail-vrouter-agent'],
     }
 
-    file { '/etc/contrail/contrail-vrouter-agent.conf':
-      ensure => file,
-      owner => root,
-      group => root,
-      mode => '0644',
-      content => template('contrail/contrail-vrouter-agent.conf.erb'),
-      require => Package['contrail-vrouter-agent'],
-      notify => Service['contrail-vrouter-agent'],
+    contrail_vrouter_config {
+      'DISCOVERY/server':                           value => $discovery_ip;
+      'DISCOVERY/max_control_nodes':                value => $vrouter_num_controllers;
+      'HYPERVISOR/type':                            value => $hypervisor_type;
+      'NETWORKS/control_network_ip':                value => $vrouter_ip;
+      'VIRTUAL-HOST-INTERFACE/name':                value => 'vhost0';
+      'VIRTUAL-HOST-INTERFACE/ip':                  value => "${vrouter_ip}/${vrouter_cidr}";
+      'VIRTUAL-HOST-INTERFACE/gateway':             value => $vrouter_gw_orig;
+      'VIRTUAL-HOST-INTERFACE/physical_interface':  value => $vrouter_physical_interface;
+    }
+
+    if $metadata_proxy_secret {
+      contrail_vrouter_config { 'METADATA/metadata_proxy_secret':
+        value => $metadata_proxy_secret,
+      }
     }
   }
 
@@ -256,12 +273,11 @@ class contrail::vrouter (
   # should be called separately.
   ##
   if $vgw_enabled {
-    contrail_vgw { $vgw_interface:
-      ensure  => present,
-      subnets => $vgw_subnets,
-      dest_net=> $vgw_dest_net,
-      vrf     => $vgw_vrf,
-      require => Service['contrail-vrouter-agent'],
+    contrail::vgw {$vgw_interface:
+      subnet   => $vgw_subnets,
+      vrf      => $vgw_vrf,
+      dest_net => $vgw_dest_net,
+      require  => Exec["ifup_${vrouter_interface}"],
     }
   }
 }
