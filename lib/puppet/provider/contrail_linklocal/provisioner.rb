@@ -85,7 +85,7 @@ Puppet::Type.type(:contrail_linklocal).provide(
         return getElement(getUrl,resource[:name],'ip_fabric_service_ip')
       end
     rescue invalid_address_error
-      return getElement(getUrl,resource[:name], 'ip_fabric_dns_service_name')
+      return getElement(getUrl,resource[:name], 'ip_fabric_DNS_service_name')
     end
   end
 
