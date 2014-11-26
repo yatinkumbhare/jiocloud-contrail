@@ -46,7 +46,7 @@ describe Puppet::Type.type(:contrail_linklocal).provider(:provisioner) do
     p.expects(:getElement).with(
       'http://127.0.0.1:8082/global-vrouter-configs',
       'foo',
-      'ip_fabric_dns_service_name'
+      'ip_fabric_DNS_service_name'
     )
     p.create
     p.ipfabric_service_address
