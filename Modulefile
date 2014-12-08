@@ -11,3 +11,8 @@ project_page 'https://github.com/JioCloud/jiocloud-contrail'
 # dependency 'puppetlabs/rabbitmq', '>= 4.0.0'
 # dependency 'puppetlabs/puppetlabs-stdlib', '>= 2.6.0'
 # dependency 'duritong/puppet-sysctl', '>= 3b027e816818f2c1086075038ac9b4af1cadbc24'
+# dependency 'jiocloud/puppet-orchestration_utils'
+# dependency 'puppetlabs/puppetlabs-apt', '>= 1.6.0'
+# dependency 'puppetlabs/puppetlabs-inifile',
+# dependency 'adrienthebo/puppet-network, '>= 0.4.1'
+# dependency 'adrienthebo/puppet-filemapper', '>= 1.1.3'
