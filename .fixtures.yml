@@ -20,3 +20,5 @@ fixtures:
     filemapper:
       repo: https://github.com/adrienthebo/puppet-filemapper
       ref: 1.1.3
+    orchestration_utils:
+      repo: https://github.com/jiocloud/puppet-orchestration_utils

@@ -36,12 +36,17 @@
 #     Default: default-domain:services:public:public - this will work for
 #     floating IP.
 #
+# [*discovery_address*]
+#    discovery server address, either IP address or resolvable dns name.
+#
+# [*api_address*]
+#    Contrail API server address, either IP address or resolvable dns name.
 #
 
 class contrail::vrouter (
-  $discovery_ip,
+  $discovery_address,
   $keystone_admin_password,
-  $api_ip                     = undef,
+  $api_address                = undef,
   $api_port                   = 8082,
   $package_names              = [ 'contrail-vrouter-agent','contrail-utils',
                                   'contrail-nova-driver','contrail-vrouter-dkms'],
@@ -84,10 +89,20 @@ class contrail::vrouter (
     fail("vrouter_physical_interface (${vrouter_physical_interface}) and vrouter_interface (${vrouter_interface}) dont exist")
   }
 
-  if ! $api_ip {
-    $api_ip_orig  = $discovery_ip
+  ##
+  # This code will support discovery_address and api_address is to be either dns name or ip address.
+  # There are some places (in configuration) it need IP address, so resolve the dns name in case dns provided.
+  ##
+  if is_ip_address($discovery_address) {
+    $discovery_ip = $discovery_address
   } else {
-    $api_ip_orig  = $api_ip
+    $discovery_ip = dns_resolve($discovery_address)
+  }
+
+  if ! $api_address {
+    $api_address_orig  = $discovery_address
+  } else {
+    $api_address_orig  = $api_address
   }
 
   $vrouter_ip  = inline_template("<%= scope.lookupvar('ipaddress_' + @iface_for_vrouter_config) %>")
@@ -263,7 +278,7 @@ class contrail::vrouter (
     ensure             => present,
     host_address       => $vrouter_ip,
     admin_password     => $keystone_admin_password,
-    api_server_address => $api_ip_orig,
+    api_server_address => $api_address_orig,
     require            => Service['contrail-vrouter-agent'],
   }
 
