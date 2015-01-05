@@ -64,11 +64,13 @@ class contrail::vrouter (
   $vgw_subnets                = [],
   $vgw_dest_net               = '0.0.0.0/0',
   $vgw_vrf                    = 'default-domain:services:public:public',
+  $lbaas                      = true,
 ) {
 
   validate_bool($vgw_enabled)
   validate_re($vgw_interface,'vgw\d+')
   validate_string($vgw_vrf)
+  validate_bool($lbaas)
 
   ##
   # restart contrail-vrouter-agent on changing vrouter configuration
@@ -109,6 +111,14 @@ class contrail::vrouter (
   $vrouter_mac = inline_template("<%= scope.lookupvar('macaddress_' + @iface_for_vrouter_config) %>")
   $vrouter_netmask = inline_template("<%= scope.lookupvar('netmask_' + @iface_for_vrouter_config) %>")
   $vrouter_cidr = netmask2cidr($vrouter_netmask)
+
+
+  ##
+  # LBAAS Setup need haproxy installed on all compute nodes
+  ##
+  if $lbaas {
+    ensure_packages('haproxy')
+  }
 
   ##
   # Usually first IP of a network used to be the gateway ip address.
