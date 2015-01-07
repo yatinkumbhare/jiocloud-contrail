@@ -42,6 +42,9 @@
 # [*api_address*]
 #    Contrail API server address, either IP address or resolvable dns name.
 #
+# [*manage_repo*]
+#  Whether to manage opencontrail (apt) repo or not.
+#
 
 class contrail::vrouter (
   $discovery_address,
@@ -51,6 +54,7 @@ class contrail::vrouter (
   $package_names              = [ 'contrail-vrouter-agent','contrail-utils',
                                   'contrail-nova-driver','contrail-vrouter-dkms'],
   $package_ensure             = 'installed',
+  $manage_repo                = false,
   $vrouter_interface          = 'vhost0',
   $vrouter_physical_interface = 'eth0',
   $vrouter_num_controllers    = 2,
@@ -71,6 +75,7 @@ class contrail::vrouter (
   validate_re($vgw_interface,'vgw\d+')
   validate_string($vgw_vrf)
   validate_bool($lbaas)
+  validate_bool($manage_repo)
 
   ##
   # restart contrail-vrouter-agent on changing vrouter configuration
@@ -80,8 +85,18 @@ class contrail::vrouter (
 
   Contrail_vrouter_config<||> ~> Service['contrail-vrouter-agent']
 
+  ##
+  #  Setup repo if enabled.
+  ##
+  if $manage_repo {
+    include contrail::repo
 
-  include contrail::repo
+    ##
+    # All package operations should follow apt::source
+    ##
+
+    Apt::Source<||> -> Package<||>
+  }
 
   if has_interface_with($vrouter_interface) {
     $iface_for_vrouter_config = $vrouter_interface
@@ -117,7 +132,7 @@ class contrail::vrouter (
   # LBAAS Setup need haproxy installed on all compute nodes
   ##
   if $lbaas {
-    ensure_packages('haproxy')
+    ensure_packages(['haproxy'])
   }
 
   ##
