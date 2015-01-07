@@ -132,7 +132,7 @@ class contrail::vrouter (
   # LBAAS Setup need haproxy installed on all compute nodes
   ##
   if $lbaas {
-    ensure_packages('haproxy')
+    ensure_packages(['haproxy'])
   }
 
   ##
