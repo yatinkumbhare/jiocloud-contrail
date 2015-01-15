@@ -288,6 +288,7 @@ class contrail::config (
   ##
   # svcmon is only required for service chaining (service VMs). So only
   # configure it if $enable_svcmon is set.
+  # svcmon need python-six >= 1.7
   ##
   if $enable_svcmon {
     file {'/etc/contrail/svc-monitor.conf':
@@ -296,11 +297,13 @@ class contrail::config (
       require   => Package[$package_name]
     }
 
+    ensure_resource('package','python-six',{ensure => latest})
+
     service {'contrail-svc-monitor':
       ensure    => 'running',
       enable    => true,
       subscribe => File['/etc/contrail/svc-monitor.conf'],
-      require   => Package[$package_name]
+      require   => [Package[$package_name],Package['python-six']],
     }
   }
 
