@@ -25,7 +25,6 @@ describe 'contrail::config' do
     it do
       should contain_package('contrail-config-openstack').with({'ensure' => 'present'})
       should contain_package('contrail-utils').with_ensure('present')
-      should contain_package('python-six').with_ensure('latest')
       should contain_package('neutron-plugin-contrail').with_ensure('present')
       should contain_file('/etc/contrail/ctrl-details').with_content( <<-CTRL.gsub(/^ {8}/, '')
         SERVICE_TOKEN=auth_password
@@ -200,6 +199,7 @@ describe 'contrail::config' do
         admin_tenant_name=openstack
       SVCMON
       )
+      should contain_package('python-six').with_ensure('latest')
       should contain_service('contrail-svc-monitor').that_subscribes_to('File[/etc/contrail/svc-monitor.conf]')
     end
   end
