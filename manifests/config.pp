@@ -146,9 +146,10 @@
 # [*router_ip*]
 #   Edge router IP address
 #
-
-
-
+# [*seed*]
+#   Specifies that the current node is the seed node. Only the seed node
+#   creates objects using the API to avoid race conditions.
+#
 class contrail::config (
   $keystone_admin_token,
   $keystone_admin_password,
@@ -191,6 +192,7 @@ class contrail::config (
   $compute_ip                 = 'None',
   $enable_svcmon              = false,
   $router_asn                 = 64512,
+  $seed                       = true,
 ){
 
   ##
@@ -332,29 +334,31 @@ class contrail::config (
   }
 
 
-  ##
-  # Provision edge routers. This is only need to be run on leader.
-  ##
-  if $router_ip {
-    contrail_router {$router_name:
-      ensure        => present,
-      host_address  => $router_ip,
-      admin_password=> $keystone_admin_password,
-      require       => Service['contrail-api'],
+  if $seed {
+    ##
+    # Provision edge routers. This is only need to be run on leader.
+    ##
+    if $router_ip {
+      contrail_router {$router_name:
+        ensure        => present,
+        host_address  => $router_ip,
+        admin_password=> $keystone_admin_password,
+        require       => Service['contrail-api'],
+      }
     }
-  }
 
-  ##
-  # Provision linklocal service for Nova metadata
-  ##
+    ##
+    # Provision linklocal service for Nova metadata
+    ##
 
-  contrail_linklocal {'metadata':
-    ensure                  => present,
-    ipfabric_service_address=> $nova_metadata_address,
-    ipfabric_service_port   => $nova_metadata_port,
-    admin_password          => $keystone_admin_password,
-    service_address         => '169.254.169.254',
-    service_port            => 80,
-    require                 => Service['contrail-api'],
+    contrail_linklocal {'metadata':
+      ensure                  => present,
+      ipfabric_service_address=> $nova_metadata_address,
+      ipfabric_service_port   => $nova_metadata_port,
+      admin_password          => $keystone_admin_password,
+      service_address         => '169.254.169.254',
+      service_port            => 80,
+      require                 => Service['contrail-api'],
+    }
   }
 }

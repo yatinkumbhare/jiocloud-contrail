@@ -25,7 +25,6 @@ describe 'contrail::config' do
     it do
       should contain_package('contrail-config-openstack').with({'ensure' => 'present'})
       should contain_package('contrail-utils').with_ensure('present')
-      should contain_package('python-six').with_ensure('latest')
       should contain_package('neutron-plugin-contrail').with_ensure('present')
       should contain_file('/etc/contrail/ctrl-details').with_content( <<-CTRL.gsub(/^ {8}/, '')
         SERVICE_TOKEN=auth_password
@@ -146,13 +145,13 @@ describe 'contrail::config' do
       })
     end
   end
-  context 'with external router' do
-    before do                      
-      params.merge!({              
+  context 'when configuring routers' do
+    before do
+      params.merge!({
         :router_ip   => '1.1.1.1',
         :router_name => 'router1',
-      })                           
-    end                            
+      })
+    end
     it do
       should contain_contrail_router('router1').with({
         'ensure'        => 'present',
@@ -160,6 +159,19 @@ describe 'contrail::config' do
         'admin_password'=> 'admin_password',
         'require'       => 'Service[contrail-api]',
       })
+    end
+  end
+  context 'when node is not the seed' do
+    before do
+      params.merge!({
+        :router_ip   => '1.1.1.1',
+        :router_name => 'router1',
+        :seed        => false,
+      })
+    end
+    it do
+      should_not contain_contrail_router('router1')
+      should_not contain_contrail_linklocal('metadata')
     end
   end
   context 'with svc-monitor' do
@@ -200,6 +212,7 @@ describe 'contrail::config' do
         admin_tenant_name=openstack
       SVCMON
       )
+      should contain_package('python-six').with_ensure('latest')
       should contain_service('contrail-svc-monitor').that_subscribes_to('File[/etc/contrail/svc-monitor.conf]')
     end
   end

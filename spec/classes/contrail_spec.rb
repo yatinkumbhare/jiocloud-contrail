@@ -56,7 +56,8 @@ describe 'contrail' do
         'discovery_listen'           => '0.0.0.0',
         'discovery_local_listen_port'=> 9110,
         'discovery_server_port'      => 5998,
-        'hc_interval'                => 5
+        'hc_interval'                => 5,
+        'seed'                       => true,
       })
 
       should_not contain_class('contrail::repo')
