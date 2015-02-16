@@ -148,6 +148,10 @@
 # [*webui_ip*]
 #   Contrail webui IP Address
 #
+# [*seed*]
+#   Specifies that the current node is the seed node. Only the seed node
+#   creates objects using the API to avoid race conditions.
+#
 # === Examples
 #
 #  class {'::contrail':
@@ -206,6 +210,7 @@ class contrail (
   $analytics_data_ttl         = 48,
   $collector_ip               = undef,
   $router_asn                 = 64512,
+  $seed                       = true,
 ) {
 
   ##
@@ -420,6 +425,7 @@ class contrail (
     router_name                => $router_name,
     router_ip                  => $router_ip,
     contrail_ip                => $contrail_ip,
+    seed                       => $seed,
   }
 
   Anchor['contrail::end_base_services'] ->
