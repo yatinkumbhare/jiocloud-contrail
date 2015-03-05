@@ -282,9 +282,17 @@ class contrail (
   ##
 
   if ! $nova_metadata_address {
-    $nova_metadata_address_orig = $contrail_ip
+    if $contrail_ip =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/ {
+      $nova_metadata_address_orig = $contrail_ip
+    } else {
+      $nova_metadata_address_orig = dns_resolve($contrail_ip)
+    }
   } else {
-    $nova_metadata_address_orig = $nova_metadata_address
+    if $nova_metadata_address =~ /^(\d+)\.(\d+)\.(\d+)\.(\d+)$/ {
+      $nova_metadata_address_orig = $nova_metadata_address
+    } else {
+      $nova_metadata_address_orig = dns_resolve($nova_metadata_address)
+    }
   }
 
   if ! $keystone_address {
