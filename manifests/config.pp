@@ -216,6 +216,17 @@ class contrail::config (
   }
 
   ##
+  # This is a workaround to make the scripts under /usr/share/contrail-utils
+  # executable, due to a bug in the contrail packaging, some of the files do not
+  # have execute permission
+  ##
+  file {'/usr/share/contrail-utils/':
+    mode    => '755',
+    recurse => true,
+    require => Package['contrail-utils'],
+  }
+
+  ##
   ## Ensure ctrl-details file is present with right content.
   ##
   file { '/etc/contrail/ctrl-details' :
