@@ -11,6 +11,24 @@ class contrail::webui (
   $contrail_ip        = $::ipaddress,
   $webui_ip           = $::ipaddress,
   $config_ip          = $::ipaddress,
+  $neutron_port       = 9696,
+  $neutron_protocol   = http,
+  $glance_address     = $::ipaddress,
+  $glance_port        = 9292,
+  $glance_protocol    = http,
+
+  $nova_address       = $::ipaddress,
+  $nova_port          = 8774,
+  $nova_protocol      = http,
+
+  $keystone_address   = $::ipaddress,
+  $keystone_port      = 5000,
+  $keystone_protocol  = http,
+
+  $cinder_address     = $::ipaddress,
+  $cinder_port        = 8776,
+  $cinder_protocol    = http,
+
   $analytics_data_ttl = 48, ## Number of hours to keep the data
   $cassandra_ip_list  = [$::ipaddress],
   $redis_ip           = $::ipaddress,

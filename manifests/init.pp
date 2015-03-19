@@ -20,11 +20,13 @@
 #  Keystone service user password
 #
 # [*keystone_admin_port*]
-#  Keystone admin port
+#  Keystone admin port, default to 35357
 #
 # [*keystone_protocol*]
-#  Keystone protocol
+#  Keystone protocol, default to http
 #
+# [*keystone_port*]
+# Keystone port - defaults to 5000
 # [*haproxy_enabled*]
 #  Whether to enable local haproxy or not.
 # Note: in case local haproxy enabled, all contrail servers will have one
@@ -152,6 +154,33 @@
 #   Specifies that the current node is the seed node. Only the seed node
 #   creates objects using the API to avoid race conditions.
 #
+# [*glance_address*]
+#  Glance address
+#
+# [*glance_port*]
+#  Glance api port, default to 9292
+#
+# [*glance_protocol*]
+#  Glance api protocol, default to http
+#
+# [*nova_address*]
+#  Nova Address
+#
+# [*nova_port*]
+#  Nova port, default to 8774
+#
+# [*nova_protocol*]
+#  Nova protocol, default to http
+#
+# [*cinder_address*]
+#  Cinder address
+#
+# [*cinder_port*]
+#  Cinder port, default to 8776
+#
+# [*cinder_protocol*]
+#  Cinder protocol, default to http
+#
 # === Examples
 #
 #  class {'::contrail':
@@ -174,7 +203,6 @@ class contrail (
   $keystone_auth_password,
   $router_ip                  = undef,
   $router_name                = 'router1',
-  $keystone_address           = undef,
   $nova_metadata_address      = undef,
   $nova_metadata_port         = 8775,
   $interface                  = 'eth0',
@@ -183,8 +211,6 @@ class contrail (
   $control_ip_list            = [],
   $config_package_name        = 'contrail-config-openstack',
   $package_ensure             = 'present',
-  $keystone_admin_port        = 35357,
-  $keystone_protocol          = 'http',
   $haproxy_enabled            = true,
   $neutron_ip                 = undef,
   $neutron_port               = 9697,
@@ -211,6 +237,24 @@ class contrail (
   $collector_ip               = undef,
   $router_asn                 = 64512,
   $seed                       = true,
+
+  $keystone_address           = undef,
+  $keystone_admin_port        = 35357,
+  $keystone_port              = 5000,
+  $keystone_protocol          = 'http',
+
+  $glance_address             = undef,
+  $glance_port                = 9292,
+  $glance_protocol            = http,
+
+  $nova_address               = undef,
+  $nova_port                  = 8774,
+  $nova_protocol              = http,
+
+  $cinder_address             = undef,
+  $cinder_port                = 8776,
+  $cinder_protocol            = http,
+
 ) {
 
   ##
@@ -232,11 +276,18 @@ class contrail (
   validate_re($discovery_local_listen_port, '\d+')
   validate_re($discovery_server_port, '\d+')
   validate_re($cassandra_port, '\d+')
+  validate_re($keystone_port, '\d+')
+  validate_re($glance_port, '\d+')
+  validate_re($cinder_port, '\d+')
+  validate_re($nova_port, '\d+')
   validate_re($analytics_data_ttl, '\d+')
   validate_re($hc_interval, '\d+')
   validate_re($router_asn, '\d+')
   validate_re($nova_metadata_port, '\d+')
   validate_string($keystone_address)
+  validate_string($glance_address)
+  validate_string($cinder_address)
+  validate_string($nova_address)
   validate_string($nova_metadata_address)
   validate_string($keystone_region)
   validate_string($keystone_admin_token)
@@ -248,6 +299,9 @@ class contrail (
   validate_string($config_package_name)
   validate_string($package_ensure)
   validate_string($keystone_protocol)
+  validate_string($glance_protocol)
+  validate_string($cinder_protocol)
+  validate_string($nova_protocol)
   validate_string($neutron_ip)
   validate_string($neutron_protocol)
   validate_string($config_ip)
@@ -299,6 +353,24 @@ class contrail (
     $keystone_address_orig = $contrail_ip
   } else {
     $keystone_address_orig = $keystone_address
+  }
+
+  if ! $glance_address {
+    $glance_address_orig = $contrail_ip
+  } else {
+    $glance_address_orig = $glance_address
+  }
+
+  if ! $cinder_address {
+    $cinder_address_orig = $contrail_ip
+  } else {
+    $cinder_address_orig = $cinder_address
+  }
+
+  if ! $nova_address {
+    $nova_address_orig = $contrail_ip
+  } else {
+    $nova_address_orig = $nova_address
   }
 
   if empty($control_ip_list) {
@@ -482,10 +554,20 @@ class contrail (
     analytics_data_ttl  => $analytics_data_ttl,
     cassandra_ip_list   => $cassandra_ip_list_orig,
     redis_ip            => $redis_ip_orig,
-    glance_address      => $keystone_address_orig,
-    nova_address        => $keystone_address_orig,
+    glance_address      => $glance_address_orig,
+    glance_port         => $glance_port,
+    glance_protocol     => $glance_protocol,
+    nova_address        => $nova_address_orig,
+    nova_port           => $nova_port,
+    nova_protocol       => $nova_protocol,
     keystone_address    => $keystone_address_orig,
-    cinder_address      => $keystone_address_orig,
+    keystone_port       => $keystone_port,
+    keystone_protocol   => $keystone_protocol,
+    cinder_address      => $cinder_address_orig,
+    cinder_port         => $cinder_port,
+    cinder_protocol     => $cinder_protocol,
+    neutron_port        => $neutron_port,
+    neutron_protocol    => $neutron_protocol,
     collector_ip        => $collector_ip_orig,
   }
 
