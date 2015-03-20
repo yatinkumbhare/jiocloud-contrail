@@ -74,32 +74,32 @@ config.serviceEndPointTakePublicURL = true;
 *****************************************************************************/
 config.networkManager = {};
 config.networkManager.ip = '<%= @config_ip %>';
-config.networkManager.port = '9696'
-config.networkManager.authProtocol = 'http';
+config.networkManager.port = '<%= @neutron_port %>'
+config.networkManager.authProtocol = '<%= @neutron_protocol %>';
 config.networkManager.apiVersion = [];
 config.networkManager.strictSSL = false;
 config.networkManager.ca = '';
 
 config.imageManager = {};
 config.imageManager.ip = '<%= @glance_address %>';
-config.imageManager.port = '9292';
-config.imageManager.authProtocol = 'http';
+config.imageManager.port = '<%= @glance_port %>';
+config.imageManager.authProtocol = '<%= @glance_protocol %>';
 config.imageManager.apiVersion = ['v1', 'v2'];
 config.imageManager.strictSSL = false;
 config.imageManager.ca = '';
 
 config.computeManager = {};
 config.computeManager.ip = '<%= @nova_address %>';
-config.computeManager.port = '8774';
-config.computeManager.authProtocol = 'http';
+config.computeManager.port = '<%= @nova_port %>';
+config.computeManager.authProtocol = '<%= @nova_protocol %>';
 config.computeManager.apiVersion = ['v1.1', 'v2'];
 config.computeManager.strictSSL = false;
 config.computeManager.ca = '';
 
 config.identityManager = {};
 config.identityManager.ip = '<%= @keystone_address %>';
-config.identityManager.port = '5000';
-config.identityManager.authProtocol = 'http';
+config.identityManager.port = '<%= @keystone_port %>';
+config.identityManager.authProtocol = '<%= @keystone_protocol %>';
 /******************************************************************************
  * Note: config.identityManager.apiVersion is not controlled by boolean flag 
  * config.serviceEndPointFromConfig. If specified apiVersion here, then these
@@ -113,8 +113,8 @@ config.identityManager.ca = '';
 
 config.storageManager = {};
 config.storageManager.ip = '<%= @cinder_address %>';
-config.storageManager.port = '8776';
-config.storageManager.authProtocol = 'http';
+config.storageManager.port = '<%= @cinder_port %>';
+config.storageManager.authProtocol = '<%= @cinder_protocol %>';
 config.storageManager.apiVersion = ['v1'];
 config.storageManager.strictSSL = false;
 config.storageManager.ca = '';
