@@ -19,7 +19,7 @@ Puppet::Type.type(:contrail_fip_pool).provide(
   def getObject(url,name)
     getUrlData(url)['floating-ip-pools'].each do |i|
       if i['fq_name'].join(':') == name
-        @fip_obj = getUrlData(i['href'])['floating-ip-pool']['project_back_refs']
+        @fip_obj = getUrlData(i['href'])['floating-ip-pool']
       end
     end
     return  @fip_obj
@@ -40,14 +40,22 @@ Puppet::Type.type(:contrail_fip_pool).provide(
   end
 
   def tenants
-    getObject(getUrl,resource[:name]).collect { |x| x['to'].last}
+    if getObject(getUrl,resource[:name]).include?('project_back_refs')
+      getObject(getUrl,resource[:name])['project_back_refs'].collect { |x| x['to'].last}
+    else
+      []
+    end
   end
 
   ##
   # TODO: As of now, removal of existing tenant from a fip pool is not supported, it need more investigation to enable it.
   ##
   def tenants=(value)
-    tenants_to_add = resource[:tenants] - getObject(getUrl,resource[:name]).collect { |x| x['to'].join(':')}
+    if getObject(getUrl,resource[:name]).include?('project_back_refs')
+      tenants_to_add = resource[:tenants] - getObject(getUrl,resource[:name])['project_back_refs'].collect { |x| x['to'].join(':')}
+    else
+      tenants_to_add = resource[:tenants]
+    end
     tenants_to_add.each do |x|
       use_fip('--project_name', "default-domain:#{x}", '--floating_ip_pool_name',"#{resource[:network_fqname]}:#{resource[:name]}")
     end
