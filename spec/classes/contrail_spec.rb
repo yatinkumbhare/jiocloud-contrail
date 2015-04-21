@@ -74,11 +74,13 @@ describe 'contrail' do
         :keystone_address        => '10.1.1.2',
         :keystone_admin_token    => 'admin_token',
         :keystone_admin_password => 'admin_password',
-        :keystone_auth_password  => 'auth_password'
+        :keystone_auth_password  => 'auth_password',
         :enable_analytics        => false,
       }
     end
-    should_not contain_class('contrail::collector')
+    it do
+      should_not contain_class('contrail::collector')
+    end
   end
   context 'with control node, manage_repo' do
     let :params do

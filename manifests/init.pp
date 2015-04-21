@@ -543,11 +543,11 @@ class contrail (
       redis_ip            => $redis_ip_orig,
       cassandra_port      => $cassandra_port,
     }
-  }
 
-  Anchor['contrail::end_base_services'] ->
-  Class['contrail::collector'] ->
-  Anchor['contrail::end']
+    Anchor['contrail::end_base_services'] ->
+    Class['contrail::collector'] ->
+    Anchor['contrail::end']
+  }
 
   ##
   # Contrail webui setup
