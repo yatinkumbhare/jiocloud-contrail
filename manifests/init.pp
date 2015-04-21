@@ -181,6 +181,8 @@
 # [*cinder_protocol*]
 #  Cinder protocol, default to http
 #
+# [*enable_analytics*]
+#  Enable contrail analytics, default to true
 # === Examples
 #
 #  class {'::contrail':
@@ -255,6 +257,7 @@ class contrail (
   $cinder_port                = 8776,
   $cinder_protocol            = http,
 
+  $enable_analytics           = true,
 ) {
 
   ##
@@ -269,6 +272,7 @@ class contrail (
   validate_bool($multi_tenancy)
   validate_bool($manage_repo)
   validate_bool($enable_svcmon)
+  validate_bool($enable_analytics)
   validate_re($keystone_admin_port, '\d+')
   validate_re($neutron_port, '\d+')
   validate_re($api_local_listen_port, '\d+')
@@ -529,14 +533,16 @@ class contrail (
   ##
   # Contrail analytics collector
   ##
-  class {'contrail::collector':
-    contrail_ip         => $contrail_ip,
-    collector_ip        => $collector_ip_orig,
-    config_ip           => $config_ip_orig,
-    analytics_data_ttl  => $analytics_data_ttl,
-    cassandra_ip_list   => $cassandra_ip_list_orig,
-    redis_ip            => $redis_ip_orig,
-    cassandra_port      => $cassandra_port,
+  if $enable_analytics {
+    class {'contrail::collector':
+      contrail_ip         => $contrail_ip,
+      collector_ip        => $collector_ip_orig,
+      config_ip           => $config_ip_orig,
+      analytics_data_ttl  => $analytics_data_ttl,
+      cassandra_ip_list   => $cassandra_ip_list_orig,
+      redis_ip            => $redis_ip_orig,
+      cassandra_port      => $cassandra_port,
+    }
   }
 
   Anchor['contrail::end_base_services'] ->
