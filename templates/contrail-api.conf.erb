@@ -15,6 +15,8 @@ zk_server_ip=<%= @zk_ip_list.map{ |ip| "#{ip}:#{@zk_port}" }.join(',') %>
 redis_server_ip=<%= @redis_ip %>
 rabbit_server=<%= @rabbit_ip %>
 rabbit_port=<%= @rabbit_port %>
+rabbit_user=<%= @rabbit_user %>
+rabbit_password=<%= @rabbit_password %>
 
 [SECURITY]
 use_certs=<%= @use_certs %>

@@ -53,6 +53,8 @@ describe 'contrail' do
         'zk_ip_list'                 => ['10.1.1.1'],
         'redis_ip'                   => '10.1.1.1',
         'rabbit_ip'                  => '10.1.1.1',
+        'rabbit_user'                => 'guest',
+        'rabbit_password'            => 'guest',
         'discovery_listen'           => '0.0.0.0',
         'discovery_local_listen_port'=> 9110,
         'discovery_server_port'      => 5998,
@@ -101,4 +103,24 @@ describe 'contrail' do
       should contain_class('contrail::repo')
     end
   end
+  
+  context 'with custom rabbitmq login' do
+    let :params do
+      {
+        :keystone_admin_token     => 'admin_token',
+        :keystone_admin_password  => 'admin_password',
+        :keystone_auth_password   => 'auth_password',
+        :rabbit_user              => 'someuser',
+        :rabbit_password          => 'somepassword',
+      }
+    end
+
+    it do 
+      should contain_class('contrail::config').with({
+        'rabbit_user'     => 'someuser',
+        'rabbit_password' => 'somepassword',
+      })
+    end
+  end
+
 end

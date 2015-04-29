@@ -57,6 +57,8 @@ describe 'contrail::config' do
         redis_server_ip=10.1.1.1
         rabbit_server=10.1.1.1
         rabbit_port=5672
+        rabbit_user=guest
+        rabbit_password=guest
 
         [SECURITY]
         use_certs=false

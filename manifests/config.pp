@@ -104,6 +104,12 @@
 # [*rabbit_port*]
 #  Rabbitmq port, Default: 5672
 #
+# [*rabbit_user*]
+#  Rabbitmq user, Default: guest
+#
+# [*rabbit_password*]
+#  Rabbitmq password, Default: guest
+#
 # [*discovery_listen*]
 #  The address on which discovery server to be listen.
 #
@@ -185,6 +191,8 @@ class contrail::config (
   $redis_ip                   = $::ipaddress,
   $rabbit_ip                  = $::ipaddress,
   $rabbit_port                = 5672,
+  $rabbit_user                = 'guest',
+  $rabbit_password            = 'guest',
   $discovery_listen           = '0.0.0.0',
   $discovery_local_listen_port= 9110,
   $discovery_server_port      = 5998,

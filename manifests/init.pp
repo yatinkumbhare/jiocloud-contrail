@@ -98,6 +98,12 @@
 # [*rabbitmq_ip*]
 #  Rabbitmq server IP
 #
+# [*rabbit_user*]
+#  Rabbitmq Username to connect with. Defaults to `guest`
+#
+# [*rabbit_password*]
+#  Rabbitmq Password to connect with. Defaults to `guest`
+#
 # [*discovery_listen*]
 #  The address on which discovery server to be listen.
 #
@@ -229,6 +235,8 @@ class contrail (
   $zk_ip_list                 = [],
   $redis_ip                   =  undef,
   $rabbit_ip                  =  undef,
+  $rabbit_user                = 'guest',
+  $rabbit_password            = 'guest',
   $discovery_listen           = '0.0.0.0',
   $discovery_local_listen_port= 9110,
   $discovery_server_port      = 5998,
@@ -300,6 +308,8 @@ class contrail (
   validate_string($redis_ip)
   validate_string($collector_ip)
   validate_string($rabbit_ip)
+  validate_string($rabbit_user)
+  validate_string($rabbit_password)
   validate_string($config_package_name)
   validate_string($package_ensure)
   validate_string($keystone_protocol)
@@ -500,6 +510,8 @@ class contrail (
     zk_ip_list                 => $zk_ip_list_orig,
     redis_ip                   => $redis_ip_orig,
     rabbit_ip                  => $rabbit_ip_orig,
+    rabbit_user                => $rabbit_user,
+    rabbit_password            => $rabbit_password,
     discovery_listen           => $discovery_listen,
     discovery_local_listen_port=> $discovery_local_listen_port,
     discovery_server_port      => $discovery_server_port,
