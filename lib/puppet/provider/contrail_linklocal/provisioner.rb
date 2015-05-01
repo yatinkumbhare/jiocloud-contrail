@@ -41,7 +41,11 @@ Puppet::Type.type(:contrail_linklocal).provide(
         args.push('--ipfabric_service_ip')
       end
     rescue invalid_address_error
-      args.push('--ipfabric_dns_service_name')
+      if addr == ''
+        raise(Puppet::Error, 'Cannot pass empty ipfabric address')
+      else
+        args.push('--ipfabric_dns_service_name')
+      end
     end
     args.push(addr)
     args.push('--oper add')
