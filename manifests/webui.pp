@@ -59,14 +59,14 @@ class contrail::webui (
   file { '/etc/contrail/config.global.js':
     ensure  => present,
     content => template("${module_name}/config.global.js.erb"),
-    require=> [ Package['contrail-web-controller'],
+    require => [ Package['contrail-web-controller'],
                 Package['contrail-web-core'] ],
   }
 
   file { '/etc/init.d/contrail-webui-jobserver':
-    ensure => link,
-    target => '/lib/init/upstart-job',
-    require=> [ Package['contrail-web-controller'],
+    ensure  => link,
+    target  => '/lib/init/upstart-job',
+    require => [ Package['contrail-web-controller'],
                 Package['contrail-web-core'] ],
   }
 
@@ -78,9 +78,9 @@ class contrail::webui (
   }
 
   file { '/etc/init.d/contrail-webui-webserver':
-    ensure => link,
-    target => '/lib/init/upstart-job',
-    require=> [ Package['contrail-web-controller'],
+    ensure  => link,
+    target  => '/lib/init/upstart-job',
+    require => [ Package['contrail-web-controller'],
                 Package['contrail-web-core'] ],
   }
 

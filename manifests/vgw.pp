@@ -33,13 +33,14 @@ define contrail::vgw (
   # TODO: Not handling multiple subnets here. This will be look into at later point.
   ##
   network_config { $interface:
-    ensure    => present,
-    onboot    => true,
-    method    => 'manual',
-    options   =>  { 'pre-up' => "vif --create ${interface} --mac 00:01:00:5e:00:00",
+    ensure  => present,
+    onboot  => true,
+    method  => 'manual',
+    options =>  {
+                    'pre-up' => "vif --create ${interface} --mac 00:01:00:5e:00:00",
                     'up'     => "route add -net ${subnet} dev ${interface}"
                   },
-    require   => Exec["vif_create_${interface}"]
+    require => Exec["vif_create_${interface}"]
   }
 
   exec {"ifup_${interface}":
