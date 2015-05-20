@@ -229,7 +229,7 @@ class contrail::config (
   # have execute permission
   ##
   file {'/usr/share/contrail-utils/':
-    mode    => '755',
+    mode    => '0755',
     recurse => true,
     require => Package['contrail-utils'],
   }
@@ -240,7 +240,7 @@ class contrail::config (
   file { '/etc/contrail/ctrl-details' :
     ensure  => present,
     content => template("${module_name}/ctrl-details.erb"),
-    require   => Package[$package_name]
+    require => Package[$package_name]
   }
 
   ##
@@ -250,7 +250,7 @@ class contrail::config (
   file { '/etc/contrail/service.token' :
     ensure  => present,
     content => template("${module_name}/service.token.erb"),
-    require   => Package[$package_name]
+    require => Package[$package_name]
   }
 
   ##
@@ -260,13 +260,13 @@ class contrail::config (
   file { '/etc/contrail/contrail-api.conf' :
     ensure  => present,
     content => template("${module_name}/contrail-api.conf.erb"),
-    require   => Package[$package_name]
+    require => Package[$package_name]
   }
 
   file {'/etc/contrail/vnc_api_lib.ini':
     ensure  => present,
     content => template("${module_name}/vnc_api_lib.ini.erb"),
-    require   => Package[$package_name]
+    require => Package[$package_name]
   }
 
   ##
@@ -297,7 +297,7 @@ class contrail::config (
   file {'/etc/contrail/contrail-schema.conf':
     ensure  => present,
     content => template("${module_name}/contrail-schema.conf.erb"),
-    require   => Package[$package_name]
+    require => Package[$package_name]
   }
 
   service {'contrail-schema':
@@ -315,7 +315,7 @@ class contrail::config (
     file {'/etc/contrail/svc-monitor.conf':
       ensure  => present,
       content => template("${module_name}/svc-monitor.conf.erb"),
-      require   => Package[$package_name]
+      require => Package[$package_name]
     }
 
     ensure_resource('package','python-six',{ensure => latest})
@@ -331,7 +331,7 @@ class contrail::config (
   file {'/etc/contrail/contrail-discovery.conf':
     ensure  => present,
     content => template("${module_name}/discovery.conf.erb"),
-    require   => Package[$package_name]
+    require => Package[$package_name]
   }
 
   service {'contrail-discovery':
@@ -346,10 +346,10 @@ class contrail::config (
   # Each controller node will its own entry.
   ##
   contrail_control {$::hostname:
-    ensure        => present,
-    host_address  => $contrail_ip,
-    admin_password=> $keystone_admin_password,
-    require       => Service['contrail-api'],
+    ensure         => present,
+    host_address   => $contrail_ip,
+    admin_password => $keystone_admin_password,
+    require        => Service['contrail-api'],
   }
 
 
@@ -359,10 +359,10 @@ class contrail::config (
     ##
     if $router_ip {
       contrail_router {$router_name:
-        ensure        => present,
-        host_address  => $router_ip,
-        admin_password=> $keystone_admin_password,
-        require       => Service['contrail-api'],
+        ensure         => present,
+        host_address   => $router_ip,
+        admin_password => $keystone_admin_password,
+        require        => Service['contrail-api'],
       }
     }
 
@@ -371,13 +371,13 @@ class contrail::config (
     ##
 
     contrail_linklocal {'metadata':
-      ensure                  => present,
-      ipfabric_service_address=> $nova_metadata_address,
-      ipfabric_service_port   => $nova_metadata_port,
-      admin_password          => $keystone_admin_password,
-      service_address         => '169.254.169.254',
-      service_port            => 80,
-      require                 => Service['contrail-api'],
+      ensure                   => present,
+      ipfabric_service_address => $nova_metadata_address,
+      ipfabric_service_port    => $nova_metadata_port,
+      admin_password           => $keystone_admin_password,
+      service_address          => '169.254.169.254',
+      service_port             => 80,
+      require                  => Service['contrail-api'],
     }
   }
 }

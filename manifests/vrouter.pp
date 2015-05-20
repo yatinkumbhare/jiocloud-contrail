@@ -178,11 +178,13 @@ class contrail::vrouter (
   }
 
   network_config { $vrouter_interface:
-    ensure    => present,
-    family    => 'inet',
-    method    => 'dhcp',
-    onboot    => true,
-    options => { 'pre-up'  => '/usr/local/bin/if-vhost0' }
+    ensure  => present,
+    family  => 'inet',
+    method  => 'dhcp',
+    onboot  => true,
+    options => {
+                'pre-up' => '/usr/local/bin/if-vhost0',
+                },
   } ->
   exec { "ifup_${vrouter_interface}":
     command => "/sbin/ifup ${vrouter_interface}",
@@ -212,13 +214,13 @@ class contrail::vrouter (
   # to be confirmed
   ##
   file { '/etc/contrail/agent_param':
-    ensure => file,
-    owner => root,
-    group => root,
-    mode => '0644',
+    ensure  => file,
+    owner   => root,
+    group   => root,
+    mode    => '0644',
     content => template('contrail/agent_param.erb'),
     require => Package['contrail-vrouter-agent'],
-    notify => Service['contrail-vrouter-agent'],
+    notify  => Service['contrail-vrouter-agent'],
   }
 
   ##
@@ -230,23 +232,23 @@ class contrail::vrouter (
 
   if $vrouter_ip {
     file { '/etc/contrail/agent.conf':
-      ensure => file,
-      owner => root,
-      group => root,
-      mode => '0644',
+      ensure  => file,
+      owner   => root,
+      group   => root,
+      mode    => '0644',
       content => template('contrail/agent.conf.erb'),
       require => Package['contrail-vrouter-agent'],
-      notify => Service['contrail-vrouter-agent'],
+      notify  => Service['contrail-vrouter-agent'],
     }
 
     file { '/etc/contrail/default_pmac':
-      ensure => file,
-      owner => root,
-      group => root,
-      mode => '0644',
+      ensure  => file,
+      owner   => root,
+      group   => root,
+      mode    => '0644',
       content => $vrouter_mac,
       require => Package['contrail-vrouter-agent'],
-      notify => Service['contrail-vrouter-agent'],
+      notify  => Service['contrail-vrouter-agent'],
     }
 
     contrail_vrouter_config {
@@ -268,24 +270,23 @@ class contrail::vrouter (
   }
 
   file { '/etc/contrail/vrouter_nodemgr_param':
-    ensure => file,
-    owner => root,
-    group => root,
-    mode => '0644',
+    ensure  => file,
+    owner   => root,
+    group   => root,
+    mode    => '0644',
     content => "DISCOVERY=${discovery_ip}\n",
     require => Package['contrail-vrouter-agent'],
-    notify => Service['contrail-vrouter-agent'],
+    notify  => Service['contrail-vrouter-agent'],
   }
 
   file { '/var/crash':
     ensure => directory,
-    owner => root,
-    group => root,
-    mode => '0755',
+    owner  => root,
+    group  => root,
+    mode   => '0755',
   }
 
-  sysctl::value { 'kernel.core_pattern': value => '/var/crash/core.%e.%p.%h.%t'
-}
+  sysctl::value { 'kernel.core_pattern': value => '/var/crash/core.%e.%p.%h.%t' }
   sysctl::value { 'net.ipv4.ip_forward': value => 1 }
 
   service { 'contrail-vrouter-agent':
