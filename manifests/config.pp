@@ -201,13 +201,13 @@ class contrail::config (
   $enable_svcmon              = false,
   $router_asn                 = 64512,
   $seed                       = true,
-  $quota_floating_ip          = -1
-  $quota_logical_router       = -1
-  $quota_security_group       = -1
-  $quota_security_group_rule  = -1
-  $quota_subnet               = -1
-  $quota_virtual_machine_interface = -1
-  $quota_virtual_network      = -1
+  $quota_floating_ip          = -1,
+  $quota_logical_router       = -1,
+  $quota_security_group       = -1,
+  $quota_security_group_rule  = -1,
+  $quota_subnet               = -1,
+  $quota_virtual_machine_interface = -1,
+  $quota_virtual_network      = -1,
 ){
 
   ##
