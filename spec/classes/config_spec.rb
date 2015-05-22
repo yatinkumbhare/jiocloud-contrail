@@ -76,13 +76,13 @@ describe 'contrail::config' do
         admin_tenant_name=openstack
 
         [QUOTA]
-        quota_floating_ip=10
-        quota_logical_router=20
-        quota_security_group=50
-        quota_security_group_rule=50
-        quota_subnet=20
-        quota_virtual_machine_interface=30
-        quota_virtual_network=8        
+        quota_floating_ip=-1
+        quota_logical_router=-1
+        quota_security_group=-1
+        quota_security_group_rule=-1
+        quota_subnet=-1
+        quota_virtual_machine_interface=-1
+        quota_virtual_network=-1
       API
       )
 
