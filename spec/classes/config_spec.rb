@@ -74,6 +74,15 @@ describe 'contrail::config' do
         admin_password=admin_password
         admin_token=admin_token
         admin_tenant_name=openstack
+
+        [QUOTA]
+        floating_ip=-1
+        logical_router=-1
+        security_group=-1
+        security_group_rule=-1
+        subnet=-1
+        virtual_machine_interface=-1
+        virtual_network=-1
       API
       )
 
