@@ -15,6 +15,9 @@ class contrail::collector (
   $cassandra_ip_list  = [$::ipaddress],
   $redis_ip           = $::ipaddress,
   $cassandra_port     = 9160,
+  $log_level          = 'SYS_INFO',
+  $log_file_size      = '10737418240',
+  $log_local          = 1,
 ) {
 
   package {'contrail-analytics':

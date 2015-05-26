@@ -8,7 +8,10 @@ listen_ip_addr=<%= @api_listen %>
 listen_port=<%= @api_local_listen_port %>
 auth=keystone
 multi_tenancy=<%= @multi_tenancy %>
-log_file=/var/log/contrail/api.log
+log_file=/var/log/contrail/contrail-api.log
+log_file_size=<%= @log_file_size %>
+log_level=<%= @log_level %>
+log_local=<%= @log_local %>
 disc_server_ip=<%= @config_ip %>
 disc_server_port=<%= @discovery_server_port %>
 zk_server_ip=<%= @zk_ip_list.map{ |ip| "#{ip}:#{@zk_port}" }.join(',') %>

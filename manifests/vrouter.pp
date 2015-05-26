@@ -69,6 +69,9 @@ class contrail::vrouter (
   $vgw_dest_net               = '0.0.0.0/0',
   $vgw_vrf                    = 'default-domain:services:public:public',
   $lbaas                      = true,
+  $log_level                  = 'SYS_INFO',
+  $log_file_size              = 10737418240,
+  $log_local                  = 1,
 ) {
 
   validate_bool($vgw_enabled)
@@ -252,6 +255,10 @@ class contrail::vrouter (
     }
 
     contrail_vrouter_config {
+      'DEFAULT/log_file':                           value => '/var/log/contrail/contrail-vrouter.log';
+      'DEFAULT/log_level':                          value => $log_level;
+      'DEFAULT/log_local':                          value => $log_local;
+      'DEFAULT/log_file_size':                      value => $log_file_size;
       'DISCOVERY/server':                           value => $discovery_ip;
       'DISCOVERY/max_control_nodes':                value => $vrouter_num_controllers;
       'HYPERVISOR/type':                            value => $hypervisor_type;

@@ -40,6 +40,11 @@ describe 'contrail::ifmap' do
         'enable'  => true,
         'require' => 'Package[ifmap-server]',
       })
+      should contain_file('/etc/ifmap-server/log4j.properties').with({
+        'ensure'  => 'present',
+        'require' => 'Package[ifmap-server]',
+        'notify'  => 'Service[ifmap-server]',
+      })
     end
   end
   context 'with control_ip_list' do

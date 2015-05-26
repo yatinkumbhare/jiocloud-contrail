@@ -24,8 +24,9 @@ describe 'contrail::collector' do
         http_server_port = 8090
         rest_api_port = 8081
         rest_api_ip = 0.0.0.0
-        log_local = 0
-        log_level = SYS_DEBUG
+        log_file_size = 10737418240
+        log_level = SYS_INFO
+        log_local = 1
         log_category =
         log_file = /var/log/contrail/contrail-analytics-api.log
 

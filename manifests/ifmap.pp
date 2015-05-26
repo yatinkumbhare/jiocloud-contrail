@@ -5,7 +5,8 @@
 ##
 class contrail::ifmap (
   $package_ensure  = 'present',
-  $control_ip_list = [$::ipaddress]
+  $control_ip_list = [$::ipaddress],
+  $log_level       = 'INFO'
 ) {
 
   ##
@@ -52,6 +53,13 @@ class contrail::ifmap (
     ensure  => present,
     require => Package['ifmap-server'],
     source  => "puppet:///modules/${module_name}/publisher.properties",
+    notify  => Service['ifmap-server'],
+  }
+
+  file { '/etc/ifmap-server/log4j.properties' :
+    ensure  => present,
+    require => Package['ifmap-server'],
+    content => template("${module_name}/ifmap-log4j.properties.erb"),
     notify  => Service['ifmap-server'],
   }
 

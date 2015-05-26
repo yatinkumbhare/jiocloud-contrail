@@ -10,8 +10,10 @@ zk_server_ip=<%= @config_ip %>
 zk_server_port=<%= @zk_port %>
 listen_ip_addr=<%= @discovery_listen %>
 listen_port=<%= @discovery_local_listen_port %>
-log_local=True
-log_file=/var/log/contrail/discovery.log
+log_local=<%= @log_local %>
+log_file=/var/log/contrail/contrail-discovery.log
+log_file_size=<%= @log_file_size %>
+log_level=<%= @log_level %>
 cassandra_server_list=<%= @cassandra_ip_list.map{ |ip| "#{ip}:#{@cassandra_port}" }.join(' ') %>
 
 # minimim time to allow client to cache service information (seconds)
