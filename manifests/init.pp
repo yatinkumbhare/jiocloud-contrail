@@ -621,7 +621,12 @@ class contrail (
       collector_ip       => $collector_ip_orig,
     }
 
-    Anchor['contrail::end_base_services'] ->
+    ##
+    # anchor contrail::end_base_services will cause dep cycle as webui have a
+    # apt-pin which will have problems on package installation in base_services
+    # like ifmap, so adding dep to contrail::start for now.
+    ##
+    Anchor['contrail::start'] ->
     Class['contrail::webui'] ->
     Anchor['contrail::end']
   }
