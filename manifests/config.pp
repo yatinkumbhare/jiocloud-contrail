@@ -208,6 +208,9 @@ class contrail::config (
   $quota_subnet               = -1,
   $quota_virtual_machine_interface = -1,
   $quota_virtual_network      = -1,
+  $log_level                  = 'SYS_INFO',
+  $log_file_size              = 10737418240,
+  $log_local                  = 1,
 ){
 
   ##

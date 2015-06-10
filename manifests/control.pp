@@ -6,6 +6,9 @@ class contrail::control (
   $control_ip_list = [$::ipaddress],
   $config_ip       = $::ipaddress,
   $contrail_ip     = $::ipaddress,
+  $log_level       = 'SYS_INFO',
+  $log_file_size   = 10737418240,
+  $log_local       = 1,
 ) {
 
   package {'contrail-control':

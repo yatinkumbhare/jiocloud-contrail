@@ -50,7 +50,10 @@ describe 'contrail::config' do
         listen_port=9100
         auth=keystone
         multi_tenancy=false
-        log_file=/var/log/contrail/api.log
+        log_file=/var/log/contrail/contrail-api.log
+        log_file_size=10737418240
+        log_level=SYS_INFO
+        log_local=1
         disc_server_ip=10.1.1.1
         disc_server_port=5998
         zk_server_ip=10.1.1.1:2181
@@ -96,7 +99,10 @@ describe 'contrail::config' do
         api_server_ip=10.1.1.1
         api_server_port=8082
         zk_server_ip=10.1.1.1:2181
-        log_file=/var/log/contrail/schema.log
+        log_file=/var/log/contrail/contrail-schema.log
+        log_file_size=10737418240
+        log_level=SYS_INFO
+        log_local=1
         cassandra_server_list=10.1.1.1:9160
         disc_server_ip=10.1.1.1
         disc_server_port=5998
@@ -200,7 +206,10 @@ describe 'contrail::config' do
         ifmap_password=svc-monitor
         api_server_ip=10.1.1.1
         api_server_port=8082
-        log_file=/var/log/contrail/svc-monitor.log
+        log_file=/var/log/contrail/contrail-svc-monitor.log
+        log_file_size=10737418240
+        log_level=SYS_INFO
+        log_local=1
         zk_server_ip=10.1.1.1:2181
         cassandra_server_list=10.1.1.1:9160
         disc_server_ip=10.1.1.1
