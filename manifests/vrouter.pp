@@ -45,6 +45,20 @@
 # [*manage_repo*]
 #  Whether to manage opencontrail (apt) repo or not.
 #
+# [*log_level*]
+# Log severity levels. Possible values are SYS_EMERG, SYS_ALERT, SYS_CRIT,
+# SYS_ERR, SYS_WARN, SYS_NOTICE, SYS_INFO and SYS_DEBUG. Default is SYS_INFO
+#
+# [*log_local*]
+# Enable/Disable local file logging. Possible values are 0 (disable)
+# and 1 (enable) (default is 1)
+#
+# [*log_file_size*]
+# Maximum log file size before its rotated by log4cxx (default 10G 10737418240 )
+#
+# [*debug*]
+#  Enable/disable debug logging.
+#
 
 class contrail::vrouter (
   $discovery_address,
@@ -72,6 +86,7 @@ class contrail::vrouter (
   $log_level                  = 'SYS_INFO',
   $log_file_size              = 10737418240,
   $log_local                  = 1,
+  $debug                      = false,
 ) {
 
   validate_bool($vgw_enabled)
@@ -259,6 +274,7 @@ class contrail::vrouter (
       'DEFAULT/log_level':                          value => $log_level;
       'DEFAULT/log_local':                          value => $log_local;
       'DEFAULT/log_file_size':                      value => $log_file_size;
+      'DEFAULT/debug':                              value => bool2num($debug);
       'DISCOVERY/server':                           value => $discovery_ip;
       'DISCOVERY/max_control_nodes':                value => $vrouter_num_controllers;
       'HYPERVISOR/type':                            value => $hypervisor_type;
