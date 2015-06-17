@@ -189,6 +189,20 @@
 #
 # [*enable_analytics*]
 #  Enable contrail analytics, default to true
+#
+# [*enable_config*]
+#  Enable contrail config services, default to true
+#
+# [*enable_control*]
+#  Enable contrail bgp/xmpp control services, defaults to true
+#
+# [*enable_webui*]
+#  Enable contrail webui, defaults to true
+#
+# [*enable_ifmap*]
+#  Enable ifmap, defaults to true. Ifmap is not required to be setup in case of
+#  a separate node which is only running contrail analytics.
+#
 # === Examples
 #
 #  class {'::contrail':
@@ -209,63 +223,67 @@ class contrail (
   $keystone_admin_token,
   $keystone_admin_password,
   $keystone_auth_password,
-  $router_ip                  = undef,
-  $router_name                = 'router1',
-  $nova_metadata_address      = undef,
-  $nova_metadata_port         = 8775,
-  $interface                  = 'eth0',
-  $keystone_region            = 'RegionOne',
-  $manage_repo                = false,
-  $control_ip_list            = [],
-  $config_package_name        = 'contrail-config-openstack',
-  $package_ensure             = 'present',
-  $haproxy_enabled            = true,
-  $neutron_ip                 = undef,
-  $neutron_port               = 9697,
-  $neutron_protocol           = 'http',
-  $config_ip                  = undef,
-  $webui_ip                   = undef,
-  $use_certs                  = false,
-  $cassandra_ip_list          = [],
-  $api_listen                 = '0.0.0.0',
-  $api_local_listen_port      = 9100,
-  $api_server_port            = 8082,
-  $multi_tenancy              = false,
-  $memcache_servers           = '127.0.0.1:11211',
-  $zk_ip_list                 = [],
-  $redis_ip                   =  undef,
-  $rabbit_ip                  =  undef,
-  $rabbit_user                = 'guest',
-  $rabbit_password            = 'guest',
-  $discovery_listen           = '0.0.0.0',
-  $discovery_local_listen_port= 9110,
-  $discovery_server_port      = 5998,
-  $hc_interval                = 5,
-  $enable_svcmon              = false,
-  $cassandra_port             = 9160,
-  $analytics_data_ttl         = 48,
-  $collector_ip               = undef,
-  $router_asn                 = 64512,
-  $seed                       = true,
+  $router_ip                   = undef,
+  $router_name                 = 'router1',
+  $nova_metadata_address       = undef,
+  $nova_metadata_port          = 8775,
+  $interface                   = 'eth0',
+  $keystone_region             = 'RegionOne',
+  $manage_repo                 = false,
+  $control_ip_list             = [],
+  $config_package_name         = 'contrail-config-openstack',
+  $package_ensure              = 'present',
+  $haproxy_enabled             = true,
+  $neutron_ip                  = undef,
+  $neutron_port                = 9697,
+  $neutron_protocol            = 'http',
+  $config_ip                   = undef,
+  $webui_ip                    = undef,
+  $use_certs                   = false,
+  $cassandra_ip_list           = [],
+  $api_listen                  = '0.0.0.0',
+  $api_local_listen_port       = 9100,
+  $api_server_port             = 8082,
+  $multi_tenancy               = false,
+  $memcache_servers            = '127.0.0.1:11211',
+  $zk_ip_list                  = [],
+  $redis_ip                    =  undef,
+  $rabbit_ip                   =  undef,
+  $rabbit_user                 = 'guest',
+  $rabbit_password             = 'guest',
+  $discovery_listen            = '0.0.0.0',
+  $discovery_local_listen_port = 9110,
+  $discovery_server_port       = 5998,
+  $hc_interval                 = 5,
+  $enable_svcmon               = false,
+  $cassandra_port              = 9160,
+  $analytics_data_ttl          = 48,
+  $collector_ip                = undef,
+  $router_asn                  = 64512,
+  $seed                        = true,
 
-  $keystone_address           = undef,
-  $keystone_admin_port        = 35357,
-  $keystone_port              = 5000,
-  $keystone_protocol          = 'http',
+  $keystone_address            = undef,
+  $keystone_admin_port         = 35357,
+  $keystone_port               = 5000,
+  $keystone_protocol           = 'http',
 
-  $glance_address             = undef,
-  $glance_port                = 9292,
-  $glance_protocol            = http,
+  $glance_address              = undef,
+  $glance_port                 = 9292,
+  $glance_protocol             = http,
 
-  $nova_address               = undef,
-  $nova_port                  = 8774,
-  $nova_protocol              = http,
+  $nova_address                = undef,
+  $nova_port                   = 8774,
+  $nova_protocol               = http,
 
-  $cinder_address             = undef,
-  $cinder_port                = 8776,
-  $cinder_protocol            = http,
+  $cinder_address              = undef,
+  $cinder_port                 = 8776,
+  $cinder_protocol             = http,
 
-  $enable_analytics           = true,
+  $enable_analytics            = true,
+  $enable_config               = true,
+  $enable_control              = true,
+  $enable_webui                = true,
+  $enable_ifmap                = true,
 ) {
 
   ##
@@ -281,6 +299,10 @@ class contrail (
   validate_bool($manage_repo)
   validate_bool($enable_svcmon)
   validate_bool($enable_analytics)
+  validate_bool($enable_config)
+  validate_bool($enable_control)
+  validate_bool($enable_webui)
+  validate_bool($enable_ifmap)
   validate_re($keystone_admin_port, '\d+')
   validate_re($neutron_port, '\d+')
   validate_re($api_local_listen_port, '\d+')
@@ -470,77 +492,86 @@ class contrail (
   Anchor['contrail::end_base_services']
 
   ##
-  # Manage contrail ifmap
+  # Manage contrail ifmap, if enabled
+  # ifmap is not required to install on the node in case of separate
+  # contrail-analytics node.
   ##
-  class {'contrail::ifmap':
-    control_ip_list => $control_ip_list_orig
-  }
+  if $enable_ifmap {
+    class {'contrail::ifmap':
+      control_ip_list => $control_ip_list_orig
+    }
 
-  Anchor['contrail::start'] ->
-  Class['contrail::system_config'] ->
-  Anchor['contrail::end_base_services']
+    Anchor['contrail::start'] ->
+    Class['contrail::ifmap'] ->
+    Anchor['contrail::end_base_services']
+  }
 
   ##
   # Manage contrail config services
   ##
-  class {'contrail::config':
-    keystone_host               => $keystone_address_orig,
-    nova_metadata_address       => $nova_metadata_address_orig,
-    nova_metadata_port          => $nova_metadata_port,
-    keystone_admin_token        => $keystone_admin_token,
-    keystone_admin_password     => $keystone_admin_password,
-    keystone_auth_password      => $keystone_auth_password,
-    keystone_region             => $keystone_region,
-    package_name                => $config_package_name,
-    package_ensure              => $package_ensure,
-    keystone_admin_port         => $keystone_admin_port,
-    keystone_protocol           => $keystone_protocol,
-    haproxy_enabled             => $haproxy_enabled,
-    neutron_ip                  => $neutron_ip_orig,
-    neutron_port                => $neutron_port,
-    neutron_protocol            => $neutron_protocol,
-    config_ip                   => $config_ip_orig,
-    use_certs                   => $use_certs,
-    cassandra_ip_list           => $cassandra_ip_list_orig,
-    api_listen                  => $api_listen,
-    api_local_listen_port       => $api_local_listen_port,
-    api_server_port             => $api_server_port,
-    multi_tenancy               => $multi_tenancy,
-    memcache_servers            => $memcache_servers,
-    zk_ip_list                  => $zk_ip_list_orig,
-    redis_ip                    => $redis_ip_orig,
-    rabbit_ip                   => $rabbit_ip_orig,
-    rabbit_user                 => $rabbit_user,
-    rabbit_password             => $rabbit_password,
-    discovery_listen            => $discovery_listen,
-    discovery_local_listen_port => $discovery_local_listen_port,
-    discovery_server_port       => $discovery_server_port,
-    hc_interval                 => $hc_interval,
-    enable_svcmon               => $enable_svcmon,
-    router_asn                  => $router_asn,
-    router_name                 => $router_name,
-    router_ip                   => $router_ip,
-    contrail_ip                 => $contrail_ip,
-    seed                        => $seed,
-  }
 
-  Anchor['contrail::end_base_services'] ->
-  Class['contrail::config'] ->
-  Anchor['contrail::end']
+  if $enable_config {
+    class {'contrail::config':
+      keystone_host               => $keystone_address_orig,
+      nova_metadata_address       => $nova_metadata_address_orig,
+      nova_metadata_port          => $nova_metadata_port,
+      keystone_admin_token        => $keystone_admin_token,
+      keystone_admin_password     => $keystone_admin_password,
+      keystone_auth_password      => $keystone_auth_password,
+      keystone_region             => $keystone_region,
+      package_name                => $config_package_name,
+      package_ensure              => $package_ensure,
+      keystone_admin_port         => $keystone_admin_port,
+      keystone_protocol           => $keystone_protocol,
+      haproxy_enabled             => $haproxy_enabled,
+      neutron_ip                  => $neutron_ip_orig,
+      neutron_port                => $neutron_port,
+      neutron_protocol            => $neutron_protocol,
+      config_ip                   => $config_ip_orig,
+      use_certs                   => $use_certs,
+      cassandra_ip_list           => $cassandra_ip_list_orig,
+      api_listen                  => $api_listen,
+      api_local_listen_port       => $api_local_listen_port,
+      api_server_port             => $api_server_port,
+      multi_tenancy               => $multi_tenancy,
+      memcache_servers            => $memcache_servers,
+      zk_ip_list                  => $zk_ip_list_orig,
+      redis_ip                    => $redis_ip_orig,
+      rabbit_ip                   => $rabbit_ip_orig,
+      rabbit_user                 => $rabbit_user,
+      rabbit_password             => $rabbit_password,
+      discovery_listen            => $discovery_listen,
+      discovery_local_listen_port => $discovery_local_listen_port,
+      discovery_server_port       => $discovery_server_port,
+      hc_interval                 => $hc_interval,
+      enable_svcmon               => $enable_svcmon,
+      router_asn                  => $router_asn,
+      router_name                 => $router_name,
+      router_ip                   => $router_ip,
+      contrail_ip                 => $contrail_ip,
+      seed                        => $seed,
+    }
+
+    Anchor['contrail::end_base_services'] ->
+    Class['contrail::config'] ->
+    Anchor['contrail::end']
+  }
 
   ##
   # Contrail control services
   ##
-  class {'contrail::control':
-    control_ip_list => $control_ip_list_orig,
-    config_ip       => $config_ip_orig,
-    contrail_ip     => $contrail_ip,
+
+  if $enable_control {
+    class {'contrail::control':
+      control_ip_list => $control_ip_list_orig,
+      config_ip       => $config_ip_orig,
+      contrail_ip     => $contrail_ip,
+    }
+
+    Anchor['contrail::end_base_services'] ->
+    Class['contrail::control'] ->
+    Anchor['contrail::end']
   }
-
-  Anchor['contrail::end_base_services'] ->
-  Class['contrail::control'] ->
-  Anchor['contrail::end']
-
 
   ##
   # Contrail analytics collector
@@ -564,32 +595,39 @@ class contrail (
   ##
   # Contrail webui setup
   ##
-  class {'contrail::webui':
-    package_ensure     => $package_ensure,
-    contrail_ip        => $contrail_ip,
-    webui_ip           => $webui_ip_orig,
-    config_ip          => $config_ip_orig,
-    analytics_data_ttl => $analytics_data_ttl,
-    cassandra_ip_list  => $cassandra_ip_list_orig,
-    redis_ip           => $redis_ip_orig,
-    glance_address     => $glance_address_orig,
-    glance_port        => $glance_port,
-    glance_protocol    => $glance_protocol,
-    nova_address       => $nova_address_orig,
-    nova_port          => $nova_port,
-    nova_protocol      => $nova_protocol,
-    keystone_address   => $keystone_address_orig,
-    keystone_port      => $keystone_port,
-    keystone_protocol  => $keystone_protocol,
-    cinder_address     => $cinder_address_orig,
-    cinder_port        => $cinder_port,
-    cinder_protocol    => $cinder_protocol,
-    neutron_port       => $neutron_port,
-    neutron_protocol   => $neutron_protocol,
-    collector_ip       => $collector_ip_orig,
-  }
+  if $enable_webui {
+    class {'contrail::webui':
+      package_ensure     => $package_ensure,
+      contrail_ip        => $contrail_ip,
+      webui_ip           => $webui_ip_orig,
+      config_ip          => $config_ip_orig,
+      analytics_data_ttl => $analytics_data_ttl,
+      cassandra_ip_list  => $cassandra_ip_list_orig,
+      redis_ip           => $redis_ip_orig,
+      glance_address     => $glance_address_orig,
+      glance_port        => $glance_port,
+      glance_protocol    => $glance_protocol,
+      nova_address       => $nova_address_orig,
+      nova_port          => $nova_port,
+      nova_protocol      => $nova_protocol,
+      keystone_address   => $keystone_address_orig,
+      keystone_port      => $keystone_port,
+      keystone_protocol  => $keystone_protocol,
+      cinder_address     => $cinder_address_orig,
+      cinder_port        => $cinder_port,
+      cinder_protocol    => $cinder_protocol,
+      neutron_port       => $neutron_port,
+      neutron_protocol   => $neutron_protocol,
+      collector_ip       => $collector_ip_orig,
+    }
 
-  Anchor['contrail::end_base_services'] ->
-  Class['contrail::webui'] ->
-  Anchor['contrail::end']
+    ##
+    # anchor contrail::end_base_services will cause dep cycle as webui have a
+    # apt-pin which will have problems on package installation in base_services
+    # like ifmap, so adding dep to contrail::start for now.
+    ##
+    Anchor['contrail::start'] ->
+    Class['contrail::webui'] ->
+    Anchor['contrail::end']
+  }
 }

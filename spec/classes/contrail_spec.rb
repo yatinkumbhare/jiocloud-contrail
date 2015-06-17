@@ -13,15 +13,16 @@ describe 'contrail' do
     }
   end
 
+  let :params do
+    {
+      :keystone_address        => '10.1.1.2',
+      :keystone_admin_token    => 'admin_token',
+      :keystone_admin_password => 'admin_password',
+      :keystone_auth_password  => 'auth_password',
+    }
+  end
+
   context 'with defaults' do
-    let :params do
-      {
-        :keystone_address        => '10.1.1.2',
-        :keystone_admin_token    => 'admin_token',
-        :keystone_admin_password => 'admin_password',
-        :keystone_auth_password  => 'auth_password'
-      }
-    end
     it do
       should contain_class('contrail::system_config')
       should contain_class('contrail::ifmap').with({
@@ -71,29 +72,40 @@ describe 'contrail' do
   end
 
   context 'without analytics' do
-    let :params do
-      {
-        :keystone_address        => '10.1.1.2',
-        :keystone_admin_token    => 'admin_token',
-        :keystone_admin_password => 'admin_password',
-        :keystone_auth_password  => 'auth_password',
-        :enable_analytics        => false,
-      }
+    before do
+      params.merge!({
+        :enable_analytics => false,
+      })
     end
     it do
       should_not contain_class('contrail::collector')
     end
   end
+
+  context 'without config, control, webui, ifmap' do
+    before do
+      params.merge!({
+        :enable_control => false,
+        :enable_config  => false,
+        :enable_webui   => false,
+        :enable_ifmap   => false,
+      })
+    end
+
+    it do
+      should_not contain_class('contrail::control')
+      should_not contain_class('contrail::config')
+      should_not contain_class('contrail::webui')
+      should_not contain_class('contrail::ifmap')
+    end
+  end
+
   context 'with control node, manage_repo' do
-    let :params do
-      {
-        :control_ip_list         => ['10.1.1.1','10.1.1.2','10.1.1.3'],
-        :keystone_address        => '10.1.1.2',
-        :keystone_admin_token    => 'admin_token',
-        :keystone_admin_password => 'admin_password',
-        :keystone_auth_password  => 'auth_password',
-        :manage_repo             => true,
-      }
+    before do
+      params.merge!({
+        :control_ip_list => ['10.1.1.1','10.1.1.2','10.1.1.3'],
+        :manage_repo     => true,
+      })
     end
 
     it do
@@ -103,19 +115,16 @@ describe 'contrail' do
       should contain_class('contrail::repo')
     end
   end
-  
+
   context 'with custom rabbitmq login' do
-    let :params do
-      {
-        :keystone_admin_token     => 'admin_token',
-        :keystone_admin_password  => 'admin_password',
-        :keystone_auth_password   => 'auth_password',
-        :rabbit_user              => 'someuser',
-        :rabbit_password          => 'somepassword',
-      }
+    before do
+      params.merge!({
+        :rabbit_user      => 'someuser',
+        :rabbit_password  => 'somepassword',
+      })
     end
 
-    it do 
+    it do
       should contain_class('contrail::config').with({
         'rabbit_user'     => 'someuser',
         'rabbit_password' => 'somepassword',
