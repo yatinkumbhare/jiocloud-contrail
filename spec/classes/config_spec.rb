@@ -165,8 +165,9 @@ describe 'contrail::config' do
   context 'when configuring routers' do
     before do
       params.merge!({
-        :router_ip   => '1.1.1.1',
-        :router_name => 'router1',
+        :edge_routers => {
+          'router1' => { 'host_address' => '1.1.1.1'}
+           }
       })
     end
     it do
@@ -181,8 +182,9 @@ describe 'contrail::config' do
   context 'when node is not the seed' do
     before do
       params.merge!({
-        :router_ip   => '1.1.1.1',
-        :router_name => 'router1',
+        :edge_routers => {
+          'router1'   => { 'host_address' => '1.1.1.1'}
+           },
         :seed        => false,
       })
     end

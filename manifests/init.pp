@@ -146,12 +146,11 @@
 # [*nova_metadata_port*]
 #   Nova Metadata port. Default: 8775
 #
-# [*router_name*]
-#   Edge router name. This is required to add router to contrail config in order
-#   to establish bgp neighbourship with edge router. Default: router1
-#
-# [*router_ip*]
-#   Edge router IP address
+# [*edge_routers*]
+#   Specified the Edge Routers name and IP address for IBGP peering with Contrail control
+#   This is a hash reference from heira in the below format
+#   contrail::edge_routers:
+#      router1:{host_address:'1.1.1.1'}
 #
 # [*webui_ip*]
 #   Contrail webui IP Address
@@ -223,8 +222,7 @@ class contrail (
   $keystone_admin_token,
   $keystone_admin_password,
   $keystone_auth_password,
-  $router_ip                   = undef,
-  $router_name                 = 'router1',
+  $edge_routers                = {},
   $nova_metadata_address       = undef,
   $nova_metadata_port          = 8775,
   $interface                   = 'eth0',
@@ -344,8 +342,7 @@ class contrail (
   validate_string($webui_ip)
   validate_string($api_listen)
   validate_string($memcache_servers)
-  validate_string($router_name)
-  validate_string($router_ip)
+  validate_hash($edge_routers)
 
   ##
   # Declaring anchors
@@ -546,8 +543,7 @@ class contrail (
       hc_interval                 => $hc_interval,
       enable_svcmon               => $enable_svcmon,
       router_asn                  => $router_asn,
-      router_name                 => $router_name,
-      router_ip                   => $router_ip,
+      edge_routers                => $edge_routers,
       contrail_ip                 => $contrail_ip,
       seed                        => $seed,
     }
